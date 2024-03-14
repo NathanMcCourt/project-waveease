@@ -1,17 +1,13 @@
 import cv2
 import mediapipe as mp
 import time
-import math
 
 def main():
-    cap = cv2.VideoCapture(0)  # 0 = Built-in camera (laptop) 1 = USB camera
+    cap = cv2.VideoCapture(0)
 
-    mpHands = mp.solutions.hands
-    hands = mpHands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5, min_tracking_confidence=0.5)
-    mpDraw = mp.solutions.drawing_utils
-
-    pTime = 0
-    cTime = 0
+    mp_hands = mp.solutions.hands
+    hands = mp_hands.Hands()
+    mp_draw = mp.solutions.drawing_utils
 
     while True:
         success, img = cap.read()
@@ -23,17 +19,33 @@ def main():
         results = hands.process(imgRGB)
 
         if results.multi_hand_landmarks:
-            for handLms in results.multi_hand_landmarks:
-                mpDraw.draw_landmarks(img, handLms, mpHands.HAND_CONNECTIONS)
+            for hand_landmarks in results.multi_hand_landmarks:
+                # List used to store finger extension status (True means extended)
+                fingers = []
 
-        cTime = time.time()
-        fps = 1 / (cTime - pTime) if cTime != pTime else 0
-        pTime = cTime
+                # Obtain landmark coordinates for finger MCP (Metacarpophalangeal, metacarpophalangeal joint) and TIP (tip of the finger)
+                for i, finger in enumerate([mp_hands.HandLandmark.INDEX_FINGER_MCP, mp_hands.HandLandmark.MIDDLE_FINGER_MCP,
+                                            mp_hands.HandLandmark.RING_FINGER_MCP, mp_hands.HandLandmark.PINKY_MCP]):
+                    finger_mcp = hand_landmarks.landmark[finger]
+                    finger_tip = hand_landmarks.landmark[finger + 3]
 
-        cv2.putText(img, f'FPS: {int(fps)}', (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
+                    # Determine if fingers are extended (tip y-coordinate is less than metacarpophalangeal joint y-coordinate)
+                    fingers.append(finger_tip.y < finger_mcp.y)
 
-        cv2.imshow("HandsImage", img)
+                # The thumb is a slightly special case, judged here by its x-coordinate #
+                thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
+                thumb_ip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_IP]
+                fingers.insert(0, thumb_tip.x < thumb_ip.x)
 
+                # Print the corresponding number based on the number of fingers stretched out
+                if all(not f for f in fingers):
+                    print("6 - Fist")
+                else:
+                    print(f"{fingers.count(True)} - Fingers extended")
+
+                mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+        cv2.imshow("Hands", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
