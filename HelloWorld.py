@@ -21,7 +21,7 @@ def main():
     measurement = np.zeros((2, 1), np.float32)
     '''
 
-    #尝试往右移动打出右，记录基础坐标以判断
+    #尝试往left移动打出left，记录基础坐标以判断
     prev_x = None
 
     while True:
@@ -79,7 +79,7 @@ def main():
                 cv2.rectangle(img, (min_x, min_y), (max_x, max_y), (0, 255, 0), 2)
                 # Print the corresponding number based on the number of fingers stretched out
 
-                ##右
+                ##left test
                 wrist = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
                 wrist_x, wrist_y = wrist.x, wrist.y
 
@@ -88,6 +88,7 @@ def main():
 
                 if prev_x is not None and wrist_x_pixel - prev_x > 20:  # suppost that move right 20 pixels is significant
                     print("left")
+
 
                 # update the previous position
                 prev_x = wrist_x_pixel
