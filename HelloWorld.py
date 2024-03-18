@@ -2,23 +2,31 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
-def InitializeKalmanFilter():
-    kalman = cv2.KalmanFilter(4, 2)  # 4 state variables (x, y, dx, dy), 2 measurements (x, y)
-    kalman.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)  # Measurement matrix
-    kalman.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)  # State transition matrix
-    kalman.processNoiseCov = np.eye(4, dtype=np.float32) * 0.03  # Process noise
-    kalman.measurementNoiseCov = np.eye(2, dtype=np.float32) * 0.0005  # Measurement noise
-    kalman.errorCovPost = np.eye(4, dtype=np.float32) * 1  # Error covariance
-    return kalman
+
+class LandmarkKalmanFilter:
+    def __init__(self):
+        self.kalman = cv2.KalmanFilter(4, 2)  # 4 state variables (x, y, dx, dy), 2 measurements (x, y)
+        self.kalman.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)  # Measurement matrix
+        self.kalman.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)  # State transition matrix
+        self.kalman.processNoiseCov = np.eye(4, dtype=np.float32) * 0.03  # Process noise
+        self.kalman.measurementNoiseCov = np.eye(2, dtype=np.float32) * 0.0005  # Measurement noise
+        self.kalman.errorCovPost = np.eye(4, dtype=np.float32) * 1  # Error covariance
+
+    def predict(self):
+        return self.kalman.predict()
+
+    def correct(self, measurement):
+        return self.kalman.correct(measurement)
+
 
 def main():
     cap = cv2.VideoCapture(0)
 
     mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands()
+    hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5)
     mp_draw = mp.solutions.drawing_utils
 
-    kalman = InitializeKalmanFilter()
+    kalman_filter = LandmarkKalmanFilter()
 
     while True:
         success, img = cap.read()
@@ -31,16 +39,16 @@ def main():
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
-                # Tracking the wrist as a simple proxy for the hand's center
-                wrist = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
-                wrist_x = wrist.x * img.shape[1]
-                wrist_y = wrist.y * img.shape[0]
+                wrist_landmark = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
+                wrist_x = wrist_landmark.x * img.shape[1]
+                wrist_y = wrist_landmark.y * img.shape[0]
 
-                # Correct the Kalman filter with the detected position and predict the next state
-                kalman.correct(np.array([[np.float32(wrist_x)], [np.float32(wrist_y)]]))
-                predicted = kalman.predict()
+                # Update Kalman filter with detected wrist position and get the predicted position
+                measurement = np.array([[np.float32(wrist_x)], [np.float32(wrist_y)]])
+                kalman_filter.correct(measurement)
+                predicted = kalman_filter.predict()
 
-                # Use the Kalman filter's prediction to draw the circle
+                # Draw the predicted wrist position
                 cv2.circle(img, (int(predicted[0]), int(predicted[1])), 10, (0, 255, 0), -1)
 
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
@@ -51,6 +59,7 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main()
