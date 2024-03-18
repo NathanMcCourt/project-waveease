@@ -4,6 +4,7 @@ import numpy as np
 
 
 class LandmarkKalmanFilter:
+    """Class to encapsulate Kalman filter setup for smoothing landmark movements."""
     def __init__(self):
         self.kalman = cv2.KalmanFilter(4, 2)  # 4 state variables (x, y, dx, dy), 2 measurements (x, y)
         self.kalman.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)  # Measurement matrix
@@ -13,20 +14,23 @@ class LandmarkKalmanFilter:
         self.kalman.errorCovPost = np.eye(4, dtype=np.float32) * 1  # Error covariance
 
     def predict(self):
+        """Predict the next state."""
         return self.kalman.predict()
 
     def correct(self, measurement):
+        """Correct the state with the latest measurement."""
         return self.kalman.correct(measurement)
 
 
 def main():
+    """Main function to detect hand gestures using MediaPipe and smooth landmarks using Kalman filter."""
     cap = cv2.VideoCapture(0)
 
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5)
     mp_draw = mp.solutions.drawing_utils
 
-    kalman_filter = LandmarkKalmanFilter()
+    kalman_filters = [LandmarkKalmanFilter() for _ in range(21)]  # Initialize a Kalman filter for each landmark
 
     while True:
         success, img = cap.read()
@@ -39,18 +43,17 @@ def main():
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
-                wrist_landmark = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
-                wrist_x = wrist_landmark.x * img.shape[1]
-                wrist_y = wrist_landmark.y * img.shape[0]
+                for i, landmark in enumerate(hand_landmarks.landmark):
+                    # Update Kalman filter for each landmark
+                    kalman_filter = kalman_filters[i]
+                    measurement = np.array([[np.float32(landmark.x * img.shape[1])], [np.float32(landmark.y * img.shape[0])]])
+                    kalman_filter.correct(measurement)
+                    predicted = kalman_filter.predict()
 
-                # Update Kalman filter with detected wrist position and get the predicted position
-                measurement = np.array([[np.float32(wrist_x)], [np.float32(wrist_y)]])
-                kalman_filter.correct(measurement)
-                predicted = kalman_filter.predict()
+                    # Draw circles at the predicted positions for all landmarks
+                    cv2.circle(img, (int(predicted[0]), int(predicted[1])), 5, (0, 255, 0), -1)
 
-                # Draw the predicted wrist position
-                cv2.circle(img, (int(predicted[0]), int(predicted[1])), 10, (0, 255, 0), -1)
-
+                    # Draw MediaPipe hand landmarks
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
         cv2.imshow("Hands", img)
