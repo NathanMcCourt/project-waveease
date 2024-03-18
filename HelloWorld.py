@@ -1,6 +1,15 @@
 import cv2
 import mediapipe as mp
-import time
+import numpy as np
+
+def InitializeKalmanFilter():
+    kalman = cv2.KalmanFilter(4, 2)  # 4 state variables (x, y, dx, dy), 2 measurements (x, y)
+    kalman.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)  # Measurement matrix
+    kalman.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)  # State transition matrix
+    kalman.processNoiseCov = np.eye(4, dtype=np.float32) * 0.03  # Process noise
+    kalman.measurementNoiseCov = np.eye(2, dtype=np.float32) * 0.0005  # Measurement noise
+    kalman.errorCovPost = np.eye(4, dtype=np.float32) * 1  # Error covariance
+    return kalman
 
 def main():
     cap = cv2.VideoCapture(0)
@@ -8,6 +17,8 @@ def main():
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands()
     mp_draw = mp.solutions.drawing_utils
+
+    kalman = InitializeKalmanFilter()
 
     while True:
         success, img = cap.read()
@@ -20,28 +31,17 @@ def main():
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
-                # List used to store finger extension status (True means extended)
-                fingers = []
+                # Tracking the wrist as a simple proxy for the hand's center
+                wrist = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
+                wrist_x = wrist.x * img.shape[1]
+                wrist_y = wrist.y * img.shape[0]
 
-                # Obtain landmark coordinates for finger MCP (Metacarpophalangeal, metacarpophalangeal joint) and TIP (tip of the finger)
-                for i, finger in enumerate([mp_hands.HandLandmark.INDEX_FINGER_MCP, mp_hands.HandLandmark.MIDDLE_FINGER_MCP,
-                                            mp_hands.HandLandmark.RING_FINGER_MCP, mp_hands.HandLandmark.PINKY_MCP]):
-                    finger_mcp = hand_landmarks.landmark[finger]
-                    finger_tip = hand_landmarks.landmark[finger + 3]
+                # Correct the Kalman filter with the detected position and predict the next state
+                kalman.correct(np.array([[np.float32(wrist_x)], [np.float32(wrist_y)]]))
+                predicted = kalman.predict()
 
-                    # Determine if fingers are extended (tip y-coordinate is less than metacarpophalangeal joint y-coordinate)
-                    fingers.append(finger_tip.y < finger_mcp.y)
-
-                # The thumb is a slightly special case, judged here by its x-coordinate #
-                thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
-                thumb_ip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_IP]
-                fingers.insert(0, thumb_tip.x < thumb_ip.x)
-
-                # Print the corresponding number based on the number of fingers stretched out
-                if all(not f for f in fingers):
-                    print("6 - Fist")
-                else:
-                    print(f"{fingers.count(True)} - Fingers extended")
+                # Use the Kalman filter's prediction to draw the circle
+                cv2.circle(img, (int(predicted[0]), int(predicted[1])), 10, (0, 255, 0), -1)
 
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
