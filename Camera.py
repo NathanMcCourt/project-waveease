@@ -1,6 +1,8 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+from collections import Counter
+import time
 
 
 class LandmarkKalmanFilter:
@@ -33,6 +35,8 @@ def main():
     kalman_filters = [LandmarkKalmanFilter() for _ in range(21)]  # Initialize a Kalman filter for each landmark
 
     previous_position = None  # Store the previous wrist position
+    movement_directions = []  # List to accumulate movement directions
+    last_time = time.time()  # Track time to output once per second
 
     while True:
         success, img = cap.read()
@@ -79,9 +83,17 @@ def main():
                     # Draw MediaPipe hand landmarks
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-        cv2.imshow("Hands", img)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+                # Output the predominant movement direction once per second
+            if time.time() - last_time > 1:
+                if movement_directions:
+                    most_common_direction = Counter(movement_directions).most_common(1)[0][0]
+                    print(f"Predominant movement in the last second: {most_common_direction}")
+                    movement_directions = []  # Reset the list for the next second
+                last_time = time.time()
+
+            cv2.imshow("Hands", img)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
     cap.release()
     cv2.destroyAllWindows()
