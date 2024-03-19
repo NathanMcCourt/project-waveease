@@ -55,18 +55,13 @@ def main():
                 if previous_position is not None:
                     # Calculate movement direction
                     movement = wrist_position - previous_position
+                    direction = None
                     if abs(movement[0]) > abs(movement[1]):  # Horizontal movement
-                        if movement[0] > 0:
-                            direction = "Right"
-                        else:
-                            direction = "Left"
+                        direction = "Right" if movement[0] > 0 else "Left"
                     else:  # Vertical movement
-                        if movement[1] > 0:
-                            direction = "Down"
-                        else:
-                            direction = "Up"
-
-                    print(f"Gesture moved: {direction}")
+                        direction = "Down" if movement[1] > 0 else "Up"
+                    if direction:
+                        movement_directions.append(direction)
 
                 previous_position = wrist_position
 
@@ -80,15 +75,15 @@ def main():
                     # Draw circles at the predicted positions for all landmarks
                     cv2.circle(img, (int(predicted[0]), int(predicted[1])), 5, (0, 255, 0), -1)
 
-                    # Draw MediaPipe hand landmarks
+                # Draw MediaPipe hand landmarks
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-                # Output the predominant movement direction once per second
-            if time.time() - last_time > 1:
+            # Output the predominant movement direction once per second
+            if time.time() - last_time >= 2:
                 if movement_directions:
                     most_common_direction = Counter(movement_directions).most_common(1)[0][0]
-                    print(f"Predominant movement in the last second: {most_common_direction}")
-                    movement_directions = []  # Reset the list for the next second
+                    print(f"Predominant movement in the last two seconds: {most_common_direction}")
+                    movement_directions = []  # Reset the list for the next two seconds
                 last_time = time.time()
 
             cv2.imshow("Hands", img)
