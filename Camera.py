@@ -1,8 +1,6 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-from collections import Counter
-import time
 
 class LandmarkKalmanFilter:
     """Class to encapsulate Kalman filter setup for smoothing landmark movements."""
@@ -52,7 +50,6 @@ def main():
                 if previous_position is not None:
                     # Calculate movement direction
                     movement = wrist_position - previous_position
-                    direction = None
                     if abs(movement[0]) > abs(movement[1]):  # Horizontal movement
                         if movement[0] > 0:
                             direction = "Right"
