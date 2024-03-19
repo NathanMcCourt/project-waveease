@@ -9,8 +9,8 @@ class LandmarkKalmanFilter:
         self.kalman = cv2.KalmanFilter(4, 2)  # 4 state variables (x, y, dx, dy), 2 measurements (x, y)
         self.kalman.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)  # Measurement matrix
         self.kalman.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)  # State transition matrix
-        self.kalman.processNoiseCov = np.eye(4, dtype=np.float32) * 0.03  # Process noise
-        self.kalman.measurementNoiseCov = np.eye(2, dtype=np.float32) * 0.0005  # Measurement noise
+        self.kalman.processNoiseCov = np.eye(4, dtype=np.float32) * 0.2  # Process noise
+        self.kalman.measurementNoiseCov = np.eye(2, dtype=np.float32) * 0.0003  # Measurement noise
         self.kalman.errorCovPost = np.eye(4, dtype=np.float32) * 1  # Error covariance
 
     def predict(self):
@@ -32,6 +32,8 @@ def main():
 
     kalman_filters = [LandmarkKalmanFilter() for _ in range(21)]  # Initialize a Kalman filter for each landmark
 
+    previous_position = None  # Store the previous wrist position
+
     while True:
         success, img = cap.read()
         if not success:
@@ -43,6 +45,27 @@ def main():
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
+                wrist_landmark = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
+                wrist_position = np.array([wrist_landmark.x * img.shape[1], wrist_landmark.y * img.shape[0]])
+
+                if previous_position is not None:
+                    # Calculate movement direction
+                    movement = wrist_position - previous_position
+                    if abs(movement[0]) > abs(movement[1]):  # Horizontal movement
+                        if movement[0] > 0:
+                            direction = "Right"
+                        else:
+                            direction = "Left"
+                    else:  # Vertical movement
+                        if movement[1] > 0:
+                            direction = "Down"
+                        else:
+                            direction = "Up"
+
+                    print(f"Gesture moved: {direction}")
+
+                previous_position = wrist_position
+
                 for i, landmark in enumerate(hand_landmarks.landmark):
                     # Update Kalman filter for each landmark
                     kalman_filter = kalman_filters[i]
