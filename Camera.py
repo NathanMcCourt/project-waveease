@@ -21,7 +21,20 @@ class LandmarkKalmanFilter:
         return self.kalman.correct(measurement)
 
 
-def main():
+def find_available_cameras(max_tests=10):
+    available_cameras = []
+    for i in range(max_tests):
+        cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+        if cap.isOpened():
+            available_cameras.append(i)
+            cap.release()
+        else:
+            break
+    return available_cameras
+
+available_cameras = find_available_cameras()
+print("Available Camera devices：", available_cameras)
+def StartCapture():
     """Main function to detect hand gestures using MediaPipe and smooth landmarks using Kalman filter."""
     cap = cv2.VideoCapture(0)
 
@@ -102,5 +115,5 @@ def main():
     cv2.destroyAllWindows()
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
