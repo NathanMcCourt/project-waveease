@@ -1,0 +1,24 @@
+Metadata-Version: 2.1
+Name: imagebind
+Version: 0.1.0
+Summary: A brief description of the package
+Home-page: https://github.com/facebookresearch/ImageBind
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+Description-Content-Type: text/markdown
+Requires-Dist: torch==1.13.0
+Requires-Dist: torchvision==0.14.0
+Requires-Dist: torchaudio==0.13.0
+Requires-Dist: pytorchvideo@ git+https://github.com/facebookresearch/pytorchvideo.git@28fe037d212663c6a24f373b94cc5d478c8c1a1d
+Requires-Dist: timm==0.6.7
+Requires-Dist: ftfy
+Requires-Dist: regex
+Requires-Dist: einops
+Requires-Dist: fvcore
+Requires-Dist: eva-decord==0.6.1
+Requires-Dist: iopath
+Requires-Dist: numpy>=1.19
+Requires-Dist: matplotlib
+Requires-Dist: types-regex
+Requires-Dist: mayavi
+Requires-Dist: cartopy
