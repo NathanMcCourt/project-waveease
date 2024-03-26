@@ -131,7 +131,7 @@ def exit_app():
 
 # Create the main windows
 root = tk.Tk()
-root.title("Waveease!")
+root.title("WavEase!")
 root.geometry("800x600")  # initial size
 
 # layout
