@@ -96,6 +96,24 @@ def start_capture():
                     movement_detectors[hand_index] = MovementDetector(window_size=0.5, move_threshold=10)
                     previous_positions[hand_index] = None
 
+                # Kalman filter bounding box
+                min_x, min_y = float('inf'), float('inf')
+                max_x, max_y = 0, 0
+
+                for i, landmark in enumerate(hand_landmarks.landmark):
+                    kalman_filter = kalman_filters[hand_index][i]
+                    measurement = np.array(
+                        [[np.float32(landmark.x * img.shape[1])], [np.float32(landmark.y * img.shape[0])]])
+                    predicted = kalman_filter.correct(measurement)
+
+                    min_x = min(min_x, predicted[0])
+                    max_x = max(max_x, predicted[0])
+                    min_y = min(min_y, predicted[1])
+                    max_y = max(max_y, predicted[1])
+
+                    cv2.circle(img, (int(predicted[0]), int(predicted[1])), 5, (0, 255, 0), -1)
+
+                cv2.rectangle(img, (int(min_x), int(min_y)), (int(max_x), int(max_y)), (0, 255, 0), 2)
 
                 for i, landmark in enumerate(hand_landmarks.landmark):
                     kalman_filter = kalman_filters[hand_index][i]
