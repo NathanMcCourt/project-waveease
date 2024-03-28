@@ -24,7 +24,7 @@ class LandmarkKalmanFilter:
 
 
 class MovementDetector:
-    def __init__(self, window_size=0.5, move_threshold=10):
+    def __init__(self, window_size=2.0, move_threshold=10):
         self.window_size = window_size
         self.move_threshold = move_threshold
         self.previous_positions = []
