@@ -70,6 +70,7 @@ settings = {
     "hotkey": ""
 }
 
+
 def start_gesture_recognition():
     camera.start_capture()
     messagebox.showinfo("message", "recognition closed!")
@@ -81,6 +82,8 @@ def save_settings(selected_camera, selected_music_app, hotkey):
     settings["selected_music_app"] = selected_music_app.get()
     settings["hotkey"] = hotkey.get()
     messagebox.showinfo("Save Setting", "Configuration saved！")
+
+
 def open_settings():
     # here to open the setting page
     settings_window = tk.Toplevel(root)
@@ -131,7 +134,7 @@ def exit_app():
 
 # Create the main windows
 root = tk.Tk()
-root.title("Waveease!")
+root.title("WavEase!")
 root.geometry("800x600")  # initial size
 
 # layout

@@ -123,7 +123,6 @@ def start_capture():
                     predicted = kalman_filter.predict()
                     cv2.circle(img, (int(predicted[0]), int(predicted[1])), 5, (0, 255, 0), -1)
 
-
                 wrist_position = np.array([hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].x * img.shape[1],
                                            hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].y * img.shape[0]])
 
