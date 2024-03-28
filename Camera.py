@@ -184,7 +184,10 @@ def start_capture():
                         out.write(frame)
                     out.release()
                     print(f"Saved video: {timestamp}.avi")
-
+                else:
+                    photo_filename = f'captures/photos/{timestamp}.jpg'
+                    cv2.imwrite(photo_filename, frames[-1])
+                    print(f"Saved photo: {timestamp}.jpg")
 
                 # Reset for the next 2 seconds
                 recording_time_start = time.time()
