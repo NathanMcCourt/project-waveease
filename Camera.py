@@ -2,6 +2,8 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import time
+import os
+from datetime import datetime
 
 
 class LandmarkKalmanFilter:
@@ -61,10 +63,31 @@ def find_available_cameras(max_tests=10):
 available_cameras = find_available_cameras()
 print("Available Camera devices：", available_cameras)
 
+if not os.path.exists('captures'):
+    os.makedirs('captures')
+    print("Created captures directory")
+else:
+    print("captures directory already exists")
+if not os.path.exists('captures/photos'):
+    os.makedirs('captures/photos')
+    print("Created photos directory")
+else:
+    print("photos directory already exists")
+if not os.path.exists('captures/videos'):
+    os.makedirs('captures/videos')
+    print("Created videos directory")
+else:
+    print("videos directory already exists")
+
 
 def start_capture():
     """Main function to detect hand gestures using MediaPipe and smooth landmarks using Kalman filter."""
     cap = cv2.VideoCapture(0)
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    frame_size = (int(cap.get(3)), int(cap.get(4)))
+    recording_time_start = time.time()
+    frames = []
 
     # MediaPipe hands setup
     mp_hands = mp.solutions.hands
@@ -131,6 +154,7 @@ def start_capture():
 
                 if movement_detector.has_moved():
                     current_position = wrist_position
+                    significant_movement_detected = True
                     if previous_positions[hand_index] is not None:
                         movement = current_position - previous_positions[hand_index]
                         # Determine movement direction
@@ -148,6 +172,17 @@ def start_capture():
 
                 # Draw MediaPipe hand landmarks
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+            frames.append(img)
+            # Check if 2 seconds have passed
+            if time.time() - recording_time_start >= 2.0:
+                timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+                # Reset for the next 2 seconds
+                recording_time_start = time.time()
+                frames = []
+                significant_movement_detected = False
+
 
             # Remove trackers for hands that are no longer detected
             active_hands = set(range(len(results.multi_hand_landmarks)))
