@@ -8,10 +8,12 @@ from datetime import datetime
 
 class LandmarkKalmanFilter:
     """Class to encapsulate Kalman filter setup for smoothing landmark movements."""
+
     def __init__(self):
         self.kalman = cv2.KalmanFilter(4, 2)  # 4 state variables (x, y, dx, dy), 2 measurements (x, y)
         self.kalman.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)  # Measurement matrix
-        self.kalman.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)  # State transition matrix
+        self.kalman.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]],
+                                                np.float32)  # State transition matrix
         self.kalman.processNoiseCov = np.eye(4, dtype=np.float32) * 0.35  # Process noise
         self.kalman.measurementNoiseCov = np.eye(2, dtype=np.float32) * 0.005  # Measurement noise
         self.kalman.errorCovPost = np.eye(4, dtype=np.float32) * 1  # Error covariance
@@ -174,27 +176,6 @@ def start_capture():
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
             frames.append(img)
-            # Check if 2 seconds have passed
-            if time.time() - recording_time_start >= 2.0:
-                timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-                if significant_movement_detected:
-                    video_filename = f'captures/videos/{timestamp}.avi'
-                    out = cv2.VideoWriter(video_filename, fourcc, 20.0, frame_size)
-                    for frame in frames:
-                        out.write(frame)
-                    out.release()
-                    print(f"Saved video: {timestamp}.avi")
-                else:
-                    photo_filename = f'captures/photos/{timestamp}.jpg'
-                    cv2.imwrite(photo_filename, frames[-1])
-                    print(f"Saved photo: {timestamp}.jpg")
-
-                # Reset for the next 2 seconds
-                recording_time_start = time.time()
-                frames = []
-                significant_movement_detected = False
-
-
             # Remove trackers for hands that are no longer detected
             active_hands = set(range(len(results.multi_hand_landmarks)))
             inactive_hands = set(kalman_filters.keys()) - active_hands
@@ -203,13 +184,31 @@ def start_capture():
                 del movement_detectors[hand_index]
                 del previous_positions[hand_index]
 
+            # Check if 2 seconds have passed
+        if time.time() - recording_time_start >= 2.0:
+            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            if significant_movement_detected:
+                video_filename = f'captures/videos/{timestamp}.avi'
+                out = cv2.VideoWriter(video_filename, fourcc, 20.0, frame_size)
+                for frame in frames:                        out.write(frame)
+                out.release()
+                print(f"Saved video: {timestamp}.avi")
+            else:
+                photo_filename = f'captures/photos/{timestamp}.jpg'
+                cv2.imwrite(photo_filename, frames[-1])
+                print(f"Saved photo: {timestamp}.jpg")
+
+            # Reset for the next 2 seconds
+            recording_time_start = time.time()
+            frames = []
+            significant_movement_detected = False
+
         cv2.imshow("Hands", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()
     cv2.destroyAllWindows()
-
 
 # if __name__ == "__main__":
 #     main()
