@@ -66,15 +66,20 @@ def start_capture():
     """Main function to detect hand gestures using MediaPipe and smooth landmarks using Kalman filter."""
     cap = cv2.VideoCapture(0)
 
+    # MediaPipe 手掌设置，最多两只
     mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5)
+    hands = mp_hands.Hands(
+        max_num_hands=2,
+        min_detection_confidence=0.7,
+        min_tracking_confidence=0.5
+    )
     mp_draw = mp.solutions.drawing_utils
 
-
-    kalman_filters = [LandmarkKalmanFilter() for _ in range(21)]  # Initialize a Kalman filter for each landmark
+    # 改为动态储存 Kalman filters
+    kalman_filters = {}
     movement_detector = MovementDetector(window_size=0.5, move_threshold=10)
 
-    previous_position = None  # Store the previous wrist position
+    previous_positions = {}  # Store the previous wrist position
 
     while True:
         success, img = cap.read()
@@ -86,55 +91,49 @@ def start_capture():
         results = hands.process(imgRGB)
 
         if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                wrist_landmark = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
-                wrist_position = np.array([wrist_landmark.x * img.shape[1], wrist_landmark.y * img.shape[0]])
+            for hand_index, hand_landmarks in enumerate(results.multi_hand_landmarks):
+                # Check and create Kalman filters for the detected hand.
+                if hand_index not in kalman_filters:
+                    kalman_filters[hand_index] = [LandmarkKalmanFilter() for _ in range(21)]
+                    previous_positions[hand_index] = None
+
+                for i, landmark in enumerate(hand_landmarks.landmark):
+                    kalman_filter = kalman_filters[hand_index][i]
+                    measurement = np.array(
+                        [[np.float32(landmark.x * img.shape[1])], [np.float32(landmark.y * img.shape[0])]])
+                    kalman_filter.correct(measurement)
+                    predicted = kalman_filter.predict()
+                    cv2.circle(img, (int(predicted[0]), int(predicted[1])), 5, (0, 255, 0), -1)
+
+                # Draw bounding box and determine movements.
+                wrist_position = np.array([hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].x * img.shape[1],
+                                           hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].y * img.shape[0]])
 
                 movement_detector.update_position(wrist_position)
 
                 if movement_detector.has_moved():
                     print("Significant movement detected.")
+                    previous_position = previous_positions[hand_index]
                     if previous_position is not None:
                         movement = wrist_position - previous_position
                         if np.linalg.norm(movement) > 1:
-                            if abs(movement[0]) > abs(movement[1]):
-                                direction = "Right" if movement[0] > 0 else "Left"
-                            else:
-                                direction = "Down" if movement[1] > 0 else "Up"
-                            print(f"Gesture moved: {direction}")
+                            direction = "Right" if movement[0] > 0 else "Left" if movement[0] < 0 else "Stationary"
+                            print(f"Hand {hand_index} moved: {direction}")
                 else:
                     print("Minimal movement.")
+                    previous_positions[hand_index] = None  # Reset if minimal movement detected
 
-                previous_position = wrist_position
+                previous_positions[hand_index] = wrist_position
 
-                for i, landmark in enumerate(hand_landmarks.landmark):
-                    # Update Kalman filter for each landmark
-                    kalman_filter = kalman_filters[i]
-                    measurement = np.array([[np.float32(landmark.x * img.shape[1])], [np.float32(landmark.y * img.shape[0])]])
-                    kalman_filter.correct(measurement)
-                    predicted = kalman_filter.predict()
-
-                    # Draw circles at the predicted positions for all landmarks
-                    cv2.circle(img, (int(predicted[0]), int(predicted[1])), 5, (0, 255, 0), -1)
-
-                    # get the keypoints coordination
-                    landmarks = [(landmark.x, landmark.y) for landmark in hand_landmarks.landmark]
-                    # calculate the coordination from landmarks
-                    min_x = min([coord[0] for coord in landmarks])
-                    max_x = max([coord[0] for coord in landmarks])
-                    min_y = min([coord[1] for coord in landmarks])
-                    max_y = max([coord[1] for coord in landmarks])
-
-                    # Convert coordinates from relative values to actual pixel coordinates
-                    min_x, max_x = int(min_x * img.shape[1]), int(max_x * img.shape[1])
-                    min_y, max_y = int(min_y * img.shape[0]), int(max_y * img.shape[0])
-
-                    # Draw bounding box on image
-                    cv2.rectangle(img, (min_x, min_y), (max_x, max_y), (0, 255, 0), 2)
-
-                # Draw MediaPipe hand landmarks
+                # Draw MediaPipe hand landmarks.
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
+            # Clean up Kalman filters for hands that are no longer tracked.
+        hand_indices_detected = set(range(len(results.multi_hand_landmarks))) if results.multi_hand_landmarks else set()
+        keys_to_remove = set(kalman_filters.keys()) - hand_indices_detected
+        for key in keys_to_remove:
+            del kalman_filters[key]
+            del previous_positions[key]
 
         cv2.imshow("Hands", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
