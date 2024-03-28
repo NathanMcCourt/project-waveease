@@ -92,7 +92,20 @@ def start_capture():
 
                 movement_detector.update_position(wrist_position)
 
-               
+                if movement_detector.has_moved():
+                    print("Significant movement detected.")
+                    if previous_position is not None:
+                        movement = wrist_position - previous_position
+                        if np.linalg.norm(movement) > 1:
+                            if abs(movement[0]) > abs(movement[1]):
+                                direction = "Right" if movement[0] > 0 else "Left"
+                            else:
+                                direction = "Down" if movement[1] > 0 else "Up"
+                            print(f"Gesture moved: {direction}")
+                else:
+                    print("Minimal movement.")
+
+                previous_position = wrist_position
 
                 for i, landmark in enumerate(hand_landmarks.landmark):
                     # Update Kalman filter for each landmark
