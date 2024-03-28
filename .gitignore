@@ -7,3 +7,6 @@
 .env.development.local
 .env.test.local
 .env.production.local
+
+# PTH files
+.checkpoints/imagebind_huge.pth
