@@ -177,6 +177,14 @@ def start_capture():
             # Check if 2 seconds have passed
             if time.time() - recording_time_start >= 2.0:
                 timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+                if significant_movement_detected:
+                    video_filename = f'captures/videos/{timestamp}.avi'
+                    out = cv2.VideoWriter(video_filename, fourcc, 20.0, frame_size)
+                    for frame in frames:
+                        out.write(frame)
+                    out.release()
+                    print(f"Saved video: {timestamp}.avi")
+
 
                 # Reset for the next 2 seconds
                 recording_time_start = time.time()
