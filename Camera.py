@@ -91,6 +91,8 @@ def start_capture():
     recording_time_start = time.time()
     frames = []
 
+    significant_movement_detected = False
+
     # MediaPipe hands setup
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(
