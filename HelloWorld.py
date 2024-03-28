@@ -1,5 +1,5 @@
 from imagebind import data
-import torch
+import pip install torch
 from imagebind.models import imagebind_model
 from imagebind.models.imagebind_model import ModalityType
 

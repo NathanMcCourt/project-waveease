@@ -1,6 +1,9 @@
+import platform
+import subprocess
 import tkinter as tk
 import cv2 as cv
-
+from setuptools import launch
+import utile as utile
 import Camera
 import Camera as camera
 from tkinter import messagebox, ttk
@@ -128,6 +131,20 @@ def open_settings():
 def exit_app():
     root.destroy()
 
+def launch_app():
+    spotify_path = utile.find_spotify_path()
+    if spotify_path:
+        print(f"Launching Spotify from: {spotify_path}")
+        if platform.system() == "Darwin":  # macOS
+            subprocess.Popen(["open", spotify_path])
+        else:
+            subprocess.Popen([spotify_path])
+    else:
+        print("Spotify installation not found.")
+
+
+
+
 
 # Create the main windows
 root = tk.Tk()
@@ -148,11 +165,14 @@ label.grid(row=0, column=0, sticky="nsew")
 start_button = tk.Button(root, text="Start Recognition", command=start_gesture_recognition)
 start_button.grid(row=1, column=0, sticky="nsew")
 
+launch_button = tk.Button(root, text="Launch app", command=launch_app)
+launch_button.grid(row=2, column=0, sticky="nsew")
+
 settings_button = tk.Button(root, text="Setting", command=open_settings)
-settings_button.grid(row=2, column=0, sticky="nsew")
+settings_button.grid(row=3, column=0, sticky="nsew")
 
 exit_button = tk.Button(root, text="Exit", command=exit_app)
-exit_button.grid(row=3, column=0, sticky="nsew")
+exit_button.grid(row=4, column=0, sticky="nsew")
 
 # start the evert loop
 root.mainloop()
