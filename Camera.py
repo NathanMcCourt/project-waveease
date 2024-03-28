@@ -217,6 +217,8 @@ def start_capture():
                     is_hand = False
 
         cv2.imshow("Hands", img)
+
+        # Use ESC to quit
         if cv2.waitKey(1) & 0xFF == 27:
             break
 
