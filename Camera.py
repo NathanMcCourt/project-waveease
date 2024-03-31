@@ -95,6 +95,8 @@ def start_capture():
     significant_movement_detected = False
     is_tracking_time = False
     start_time = time.time()
+    last_hand_detected_time = time.time()
+
 
     # MediaPipe hands setup
     mp_hands = mp.solutions.hands
@@ -193,10 +195,10 @@ def start_capture():
                 del previous_positions[hand_index]
 
         else:
-            recorded_time = time.time() - start_time
+            recorded_time = time.time() - last_hand_detected_time
             if recorded_time > TIMEOUT_SECONDS:
                 print("Pass " + str(TIMEOUT_SECONDS) + " seconds without hand.")
-                start_time = time.time()
+                last_hand_detected_time = time.time()
 
         # Check if x seconds have passed
         if is_tracking_time:
@@ -206,7 +208,7 @@ def start_capture():
                 if significant_movement_detected and frames:
                     video_filename = f'captures/videos/{timestamp}.avi'
                     out = cv2.VideoWriter(video_filename, fourcc, 20.0, frame_size)
-                    for frame in frames:                        out.write(frame)
+                    for frame in frames: out.write(frame)
                     out.release()
                     print(f"Saved video: {timestamp}.avi")
                 elif frames:
@@ -217,9 +219,11 @@ def start_capture():
                     print("No frames captured")
 
                 # Reset for the next x seconds
-                start_time = time.time()
                 frames = []
                 significant_movement_detected = False
+                is_tracking_time = False
+                start_time = time.time()
+                last_hand_detected_time = time.time()
 
         cv2.imshow("Hands", img)
 
