@@ -5,6 +5,7 @@ import time
 import os
 from datetime import datetime
 
+TIMEOUT_SECONDS = 5
 
 class LandmarkKalmanFilter:
     """Class to encapsulate Kalman filter setup for smoothing landmark movements."""
@@ -94,6 +95,8 @@ def start_capture():
     significant_movement_detected = False
     is_hand = False
     is_start = False
+    is_timing = False
+    recorded_time = 0
 
     # MediaPipe hands setup
     mp_hands = mp.solutions.hands
@@ -118,6 +121,10 @@ def start_capture():
         results = hands.process(imgRGB)
 
         if results.multi_hand_landmarks:
+            if not is_timing:
+                recording_time_start = time.time()
+                is_timing = True
+            is_hand = True
             for hand_index, hand_landmarks in enumerate(results.multi_hand_landmarks):
                 # Check and create Kalman filters for the detected hand
                 if hand_index not in kalman_filters:
@@ -178,7 +185,6 @@ def start_capture():
 
                 # Draw MediaPipe hand landmarks
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-                is_hand = True
 
             frames.append(img)
             # Remove trackers for hands that are no longer detected
@@ -189,6 +195,14 @@ def start_capture():
                 del movement_detectors[hand_index]
                 del previous_positions[hand_index]
 
+        else:
+            if is_timing:
+                # 如果手部消失，检查是否超过了10秒钟
+                recorded_time = time.time() - recording_time_start
+                if recorded_time > TIMEOUT_SECONDS:
+                    print("Pass " + str(TIMEOUT_SECONDS) + " seconds without hand.")
+                    is_timing = False
+
         # Check if 2 seconds have passed
         if is_hand:
             if not is_start:
@@ -196,8 +210,8 @@ def start_capture():
                 print(recording_time_start)
                 is_start = True
             if is_start:
-                if time.time() - recording_time_start >= 2.0:
-                    print("Pass 2 seconds.")
+                if time.time() - recording_time_start > TIMEOUT_SECONDS:
+                    print("Pass " + str(TIMEOUT_SECONDS) + " seconds.")
                     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
                     if significant_movement_detected:
                         video_filename = f'captures/videos/{timestamp}.avi'
@@ -215,6 +229,9 @@ def start_capture():
                     frames = []
                     significant_movement_detected = False
                     is_hand = False
+        else:
+            is_hand = False
+
 
         cv2.imshow("Hands", img)
 
