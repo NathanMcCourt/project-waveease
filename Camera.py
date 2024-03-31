@@ -93,8 +93,8 @@ def start_capture():
     frames = []
 
     significant_movement_detected = False
-    is_timing = False
-    recording_time_start = time.time()
+    is_tracking_time = False
+    start_time = time.time()
 
     # MediaPipe hands setup
     mp_hands = mp.solutions.hands
@@ -119,9 +119,9 @@ def start_capture():
         results = hands.process(imgRGB)
 
         if results.multi_hand_landmarks:
-            if not is_timing:
-                recording_time_start = time.time()  # Start the timer
-                is_timing = True
+            if not is_tracking_time:
+                start_time = time.time()  # Start the timer
+                is_tracking_time = True
             for hand_index, hand_landmarks in enumerate(results.multi_hand_landmarks):
                 # Check and create Kalman filters for the detected hand
                 if hand_index not in kalman_filters:
@@ -193,31 +193,33 @@ def start_capture():
                 del previous_positions[hand_index]
 
         else:
-            if is_timing:
-                recorded_time = time.time() - recording_time_start
-                if recorded_time > TIMEOUT_SECONDS:
-                    print("Pass " + str(TIMEOUT_SECONDS) + " seconds without hand.")
-                    is_timing = False
+            recorded_time = time.time() - start_time
+            if recorded_time > TIMEOUT_SECONDS:
+                print("Pass " + str(TIMEOUT_SECONDS) + " seconds without hand.")
+                start_time = time.time()
 
         # Check if x seconds have passed
-        if time.time() - recording_time_start > TIMEOUT_SECONDS:
-            print("Pass " + str(TIMEOUT_SECONDS) + " seconds.")
-            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            if significant_movement_detected:
-                video_filename = f'captures/videos/{timestamp}.avi'
-                out = cv2.VideoWriter(video_filename, fourcc, 20.0, frame_size)
-                for frame in frames:                        out.write(frame)
-                out.release()
-                print(f"Saved video: {timestamp}.avi")
-            else:
-                photo_filename = f'captures/photos/{timestamp}.jpg'
-                cv2.imwrite(photo_filename, frames[-1])
-                print(f"Saved photo: {timestamp}.jpg")
+        if is_tracking_time:
+            if time.time() - start_time > TIMEOUT_SECONDS:
+                print("Pass " + str(TIMEOUT_SECONDS) + " seconds.")
+                timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+                if significant_movement_detected and frames:
+                    video_filename = f'captures/videos/{timestamp}.avi'
+                    out = cv2.VideoWriter(video_filename, fourcc, 20.0, frame_size)
+                    for frame in frames:                        out.write(frame)
+                    out.release()
+                    print(f"Saved video: {timestamp}.avi")
+                elif frames:
+                    photo_filename = f'captures/photos/{timestamp}.jpg'
+                    cv2.imwrite(photo_filename, frames[-1])
+                    print(f"Saved photo: {timestamp}.jpg")
+                else:
+                    print("No frames captured")
 
-            # Reset for the next x seconds
-            recording_time_start = time.time()
-            frames = []
-            significant_movement_detected = False
+                # Reset for the next x seconds
+                start_time = time.time()
+                frames = []
+                significant_movement_detected = False
 
         cv2.imshow("Hands", img)
 
