@@ -153,6 +153,7 @@ def launch_app():
 root = tk.Tk()
 root.title("WavEase!")
 root.geometry("800x600")  # initial size
+root.minsize(500, 300)
 
 # layout
 root.grid_columnconfigure(0, weight=1)
