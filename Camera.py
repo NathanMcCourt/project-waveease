@@ -1,14 +1,19 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-import pyautogui
+import time
+import os
+from datetime import datetime
+
 
 class LandmarkKalmanFilter:
     """Class to encapsulate Kalman filter setup for smoothing landmark movements."""
+
     def __init__(self):
         self.kalman = cv2.KalmanFilter(4, 2)  # 4 state variables (x, y, dx, dy), 2 measurements (x, y)
         self.kalman.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)  # Measurement matrix
-        self.kalman.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)  # State transition matrix
+        self.kalman.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]],
+                                                np.float32)  # State transition matrix
         self.kalman.processNoiseCov = np.eye(4, dtype=np.float32) * 0.35  # Process noise
         self.kalman.measurementNoiseCov = np.eye(2, dtype=np.float32) * 0.005  # Measurement noise
         self.kalman.errorCovPost = np.eye(4, dtype=np.float32) * 1  # Error covariance
@@ -20,6 +25,29 @@ class LandmarkKalmanFilter:
     def correct(self, measurement):
         """Correct the state with the latest measurement."""
         return self.kalman.correct(measurement)
+
+
+class MovementDetector:
+    def __init__(self, window_size=2.0, move_threshold=10):
+        self.window_size = window_size
+        self.move_threshold = move_threshold
+        self.previous_positions = []
+        self.window_start_time = time.time()
+
+    def update_position(self, position):
+        current_time = time.time()
+        self.previous_positions.append((current_time, position))
+        # 清除超出时间窗口的旧数据
+        self.previous_positions = [pos for pos in self.previous_positions if current_time - pos[0] <= self.window_size]
+
+    def has_moved(self):
+        if len(self.previous_positions) > 1:
+            # 计算位置变化
+            start_position = self.previous_positions[0][1]
+            end_position = self.previous_positions[-1][1]
+            displacement = np.linalg.norm(end_position - start_position)
+            return displacement >= self.move_threshold
+        return False
 
 
 def find_available_cameras(max_tests=10):
@@ -34,87 +62,49 @@ def find_available_cameras(max_tests=10):
     return available_cameras
 
 
-# adds the text of the gesture name to the debug screen
-def draw_info_text(image, gesture, brect):
-
-    info_text = gesture
-    
-    cv2.putText(image, info_text, (brect[0] + 5, brect[1] - 4),
-               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv2.LINE_AA)
-
-
-    return image
-
-
-# creates a box around the gesture
-def calc_bounding_rect(image, landmarks):
-    image_width, image_height = image.shape[1], image.shape[0]
-
-    landmark_array = np.empty((0, 2), int)
-
-    for _, landmark in enumerate(landmarks.landmark):
-        landmark_x = min(int(landmark.x * image_width), image_width - 1)
-        landmark_y = min(int(landmark.y * image_height), image_height - 1)
-
-        landmark_point = [np.array((landmark_x, landmark_y))]
-
-        landmark_array = np.append(landmark_array, landmark_point, axis=0)
-
-    x, y, w, h = cv2.boundingRect(landmark_array)
-
-    return [x, y, x + w, y + h]
-
-
-
 available_cameras = find_available_cameras()
 print("Available Camera devices：", available_cameras)
-def StartCapture():
+
+if not os.path.exists('captures'):
+    os.makedirs('captures')
+    print("Created captures directory")
+else:
+    print("captures directory already exists")
+if not os.path.exists('captures/photos'):
+    os.makedirs('captures/photos')
+    print("Created photos directory")
+else:
+    print("photos directory already exists")
+if not os.path.exists('captures/videos'):
+    os.makedirs('captures/videos')
+    print("Created videos directory")
+else:
+    print("videos directory already exists")
+
+
+def start_capture():
     """Main function to detect hand gestures using MediaPipe and smooth landmarks using Kalman filter."""
     cap = cv2.VideoCapture(0)
 
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    frame_size = (int(cap.get(3)), int(cap.get(4)))
+    recording_time_start = time.time()
+    frames = []
+
+    significant_movement_detected = False
+
+    # MediaPipe hands setup
     mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5)
+    hands = mp_hands.Hands(
+        max_num_hands=2,
+        min_detection_confidence=0.7,
+        min_tracking_confidence=0.5
+    )
     mp_draw = mp.solutions.drawing_utils
 
-    kalman_filters = [LandmarkKalmanFilter() for _ in range(21)]  # Initialize a Kalman filter for each landmark
-
-    previous_position = None  # Store the previous wrist position
-
-    ################ GESTURES ######################################
-    
-    # will return the name of the gesture it recognizes as either volume up or down
-    def volume(gesture):
-        # List used to store finger extension status (True means extended)
-        fingers = []
-
-        # Obtain landmark coordinates for finger MCP (Metacarpophalangeal, metacarpophalangeal joint) and TIP (tip of the finger)
-        for i, finger in enumerate([mp_hands.HandLandmark.INDEX_FINGER_MCP, mp_hands.HandLandmark.MIDDLE_FINGER_MCP,
-                                    mp_hands.HandLandmark.RING_FINGER_MCP, mp_hands.HandLandmark.PINKY_MCP]):
-            finger_mcp = hand_landmarks.landmark[finger]
-            finger_tip = hand_landmarks.landmark[finger + 3]
-
-            # Determine if fingers are extended (tip y-coordinate is less than metacarpophalangeal joint y-coordinate)
-            fingers.append(finger_tip.y < finger_mcp.y)
-
-        # The thumb is a slightly special case, judged here by its x-coordinate #
-        thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
-        thumb_ip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_IP]
-        fingers.insert(0, thumb_tip.x < thumb_ip.x)
-
-        # Detect finger pointing up
-        if fingers[1] and all(not f for f in fingers[2:]):
-            pyautogui.press('volumeup')
-            #print("Volume Up")
-            gesture = "Volume Up"
-        # Detect finger pointing down
-        elif not fingers[1] and all(not f for f in fingers[2:]):
-            pyautogui.press('volumedown')
-            #print("Volume Down")
-            gesture = "Volume Down"
-
-        return gesture
-
-
+    kalman_filters = {}
+    movement_detectors = {}
+    previous_positions = {}  # Store the previous wrist position
 
     while True:
         success, img = cap.read()
@@ -125,66 +115,95 @@ def StartCapture():
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         results = hands.process(imgRGB)
 
-
         if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                wrist_landmark = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
-                wrist_position = np.array([wrist_landmark.x * img.shape[1], wrist_landmark.y * img.shape[0]])
+            for hand_index, hand_landmarks in enumerate(results.multi_hand_landmarks):
+                # Check and create Kalman filters for the detected hand
+                if hand_index not in kalman_filters:
+                    kalman_filters[hand_index] = [LandmarkKalmanFilter() for _ in range(21)]
+                    movement_detectors[hand_index] = MovementDetector(window_size=0.5, move_threshold=10)
+                    previous_positions[hand_index] = None
 
-                rect = calc_bounding_rect(img, hand_landmarks)
-
-                gesture = "HI make a gesture"
-
-                gesture = volume(gesture)
-
-                if previous_position is not None:
-                    # Calculate movement direction
-                    movement = wrist_position - previous_position
-                    if abs(movement[0]) > abs(movement[1]):  # Horizontal movement
-                        if movement[0] > 0:
-                            direction = "Right"
-                        else:
-                            direction = "Left"
-                    else:  # Vertical movement
-                        if movement[1] > 0:
-                            direction = "Down"
-                        else:
-                            direction = "Up"
-
-                    print(f"Gesture moved: {direction}")
-
-                previous_position = wrist_position
+                # Kalman filter bounding box
+                min_x, min_y = float('inf'), float('inf')
+                max_x, max_y = 0, 0
 
                 for i, landmark in enumerate(hand_landmarks.landmark):
-                    # Update Kalman filter for each landmark
-                    kalman_filter = kalman_filters[i]
-                    measurement = np.array([[np.float32(landmark.x * img.shape[1])], [np.float32(landmark.y * img.shape[0])]])
-                    kalman_filter.correct(measurement)
-                    predicted = kalman_filter.predict()
+                    kalman_filter = kalman_filters[hand_index][i]
+                    measurement = np.array(
+                        [[np.float32(landmark.x * img.shape[1])], [np.float32(landmark.y * img.shape[0])]])
+                    predicted = kalman_filter.correct(measurement)
 
-                    # Draw circles at the predicted positions for all landmarks
+                    min_x = min(min_x, predicted[0])
+                    max_x = max(max_x, predicted[0])
+                    min_y = min(min_y, predicted[1])
+                    max_y = max(max_y, predicted[1])
+
                     cv2.circle(img, (int(predicted[0]), int(predicted[1])), 5, (0, 255, 0), -1)
 
-                    # get the keypoints coordination
-                    landmarks = [(landmark.x, landmark.y) for landmark in hand_landmarks.landmark]
-                    # calculate the coordination from landmarks
-                    min_x = min([coord[0] for coord in landmarks])
-                    max_x = max([coord[0] for coord in landmarks])
-                    min_y = min([coord[1] for coord in landmarks])
-                    max_y = max([coord[1] for coord in landmarks])
+                cv2.rectangle(img, (int(min_x), int(min_y)), (int(max_x), int(max_y)), (0, 255, 0), 2)
 
-                    # Convert coordinates from relative values to actual pixel coordinates
-                    min_x, max_x = int(min_x * img.shape[1]), int(max_x * img.shape[1])
-                    min_y, max_y = int(min_y * img.shape[0]), int(max_y * img.shape[0])
+                for i, landmark in enumerate(hand_landmarks.landmark):
+                    kalman_filter = kalman_filters[hand_index][i]
+                    measurement = np.array(
+                        [[np.float32(landmark.x * img.shape[1])], [np.float32(landmark.y * img.shape[0])]])
+                    kalman_filter.correct(measurement)
+                    predicted = kalman_filter.predict()
+                    cv2.circle(img, (int(predicted[0]), int(predicted[1])), 5, (0, 255, 0), -1)
 
-                    # Draw bounding box on image
-                    cv2.rectangle(img, (min_x, min_y), (max_x, max_y), (0, 255, 0), 2)
+                wrist_position = np.array([hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].x * img.shape[1],
+                                           hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].y * img.shape[0]])
 
-                img = draw_info_text(img, gesture, rect)
+                movement_detector = movement_detectors[hand_index]
+                movement_detector.update_position(wrist_position)
+
+                if movement_detector.has_moved():
+                    current_position = wrist_position
+                    significant_movement_detected = True
+                    if previous_positions[hand_index] is not None:
+                        movement = current_position - previous_positions[hand_index]
+                        # Determine movement direction
+                        if np.linalg.norm(movement) > 1:  # Threshold check
+                            horizontal_movement = movement[0]
+                            vertical_movement = movement[1]
+                            if abs(horizontal_movement) > abs(vertical_movement):
+                                direction = "Right" if horizontal_movement > 0 else "Left"
+                            else:
+                                direction = "Up" if vertical_movement < 0 else "Down"  # Note: screen coordinates y-axis is inverted
+                            print(f"Hand {hand_index} moved: {direction}")
+                    previous_positions[hand_index] = current_position
+                else:
+                    print(f"Hand {hand_index}: Minimal or no movement.")
 
                 # Draw MediaPipe hand landmarks
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
+            frames.append(img)
+            # Remove trackers for hands that are no longer detected
+            active_hands = set(range(len(results.multi_hand_landmarks)))
+            inactive_hands = set(kalman_filters.keys()) - active_hands
+            for hand_index in inactive_hands:
+                del kalman_filters[hand_index]
+                del movement_detectors[hand_index]
+                del previous_positions[hand_index]
+
+            # Check if 2 seconds have passed
+        if time.time() - recording_time_start >= 2.0:
+            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            if significant_movement_detected:
+                video_filename = f'captures/videos/{timestamp}.avi'
+                out = cv2.VideoWriter(video_filename, fourcc, 20.0, frame_size)
+                for frame in frames:                        out.write(frame)
+                out.release()
+                print(f"Saved video: {timestamp}.avi")
+            else:
+                photo_filename = f'captures/photos/{timestamp}.jpg'
+                cv2.imwrite(photo_filename, frames[-1])
+                print(f"Saved photo: {timestamp}.jpg")
+
+            # Reset for the next 2 seconds
+            recording_time_start = time.time()
+            frames = []
+            significant_movement_detected = False
 
         cv2.imshow("Hands", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -192,7 +211,6 @@ def StartCapture():
 
     cap.release()
     cv2.destroyAllWindows()
-
 
 # if __name__ == "__main__":
 #     main()

@@ -73,8 +73,9 @@ settings = {
     "hotkey": ""
 }
 
+
 def start_gesture_recognition():
-    camera.StartCapture()
+    camera.start_capture()
     messagebox.showinfo("message", "recognition closed!")
 
 
@@ -84,6 +85,8 @@ def save_settings(selected_camera, selected_music_app, hotkey):
     settings["selected_music_app"] = selected_music_app.get()
     settings["hotkey"] = hotkey.get()
     messagebox.showinfo("Save Setting", "Configuration saved！")
+
+
 def open_settings():
     # here to open the setting page
     settings_window = tk.Toplevel(root)
