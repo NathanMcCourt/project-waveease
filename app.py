@@ -133,6 +133,7 @@ def open_settings():
 
 def exit_app():
     root.destroy()
+    exit(0)
 
 def launch_app():
     spotify_path = utile.find_spotify_path()
@@ -152,31 +153,42 @@ def launch_app():
 # Create the main windows
 root = tk.Tk()
 root.title("WavEase!")
-root.geometry("800x600")  # initial size
+root.geometry("500x300")  # initial size
 root.minsize(500, 300)
+root.configure(background="#c3c3c3")
 
 # layout
-root.grid_columnconfigure(0, weight=1)
-root.grid_rowconfigure(0, weight=1)
-root.grid_rowconfigure(1, weight=1)
-root.grid_rowconfigure(2, weight=1)
+root.grid_columnconfigure([1,2], weight=1, minsize=70)
+#root.grid_columnconfigure(1, weight=1, minsize=70)
 
-# Add a lable
-label = tk.Label(root, text="Welcome to use Waveease!")
-label.grid(row=0, column=0, sticky="nsew")
+root.grid_rowconfigure(0, weight=1, minsize=20)
+root.grid_rowconfigure(1, weight=1, minsize=20)
+root.grid_rowconfigure([2,3], weight=1, minsize=10)
+root.wm_attributes('-transparentcolor', 'grey')
+
+
+# Add a label
+label = tk.Label(root, text=""" __          __         _                                       _              __          __                  ______                        
+ \ \        / /        | |                                     | |             \ \        / /                 |  ____|                       
+  \ \  /\  / /    ___  | |   ___    ___    _ __ ___     ___    | |_    ___      \ \  /\  / /    __ _  __   __ | |__      __ _   ___    ___   
+   \ \/  \/ /    / _ \ | |  / __|  / _ \  | '_ ` _ \   / _ \   | __|  / _ \      \ \/  \/ /    / _` | \ \ / / |  __|    / _` | / __|  / _ \  
+    \  /\  /    |  __/ | | | (__  | (_) | | | | | | | |  __/   | |_  | (_) |      \  /\  /    | (_| |  \ V /  | |____  | (_| | \__ \ |  __/  
+     \/  \/      \___| |_|  \___|  \___/  |_| |_| |_|  \___|    \__|  \___/        \/  \/      \__,_|   \_/   |______|  \__,_| |___/  \___|
+                 """, background='#c3c3c3')
+label.grid(row=1, column=1, sticky="nsew", padx=8, pady=8, columnspan=2)
 
 # Add Button
 start_button = tk.Button(root, text="Start Recognition", command=start_gesture_recognition)
-start_button.grid(row=1, column=0, sticky="nsew")
+start_button.grid(row=2, column=1, padx=8, pady=8, ipadx=30, ipady=5)
 
 launch_button = tk.Button(root, text="Launch app", command=launch_app)
-launch_button.grid(row=2, column=0, sticky="nsew")
+launch_button.grid(row=2, column=2, padx=8, pady=8, ipadx=30, ipady=5)
 
-settings_button = tk.Button(root, text="Setting", command=open_settings)
-settings_button.grid(row=3, column=0, sticky="nsew")
+settings_button = tk.Button(root, text="Settings", command=open_settings)
+settings_button.grid(row=3, column=1, padx=8, pady=8, ipadx=30, ipady=5)
 
 exit_button = tk.Button(root, text="Exit", command=exit_app)
-exit_button.grid(row=4, column=0, sticky="nsew")
+exit_button.grid(row=3, column=2, padx=8, pady=8, ipadx=30, ipady=5)
 
 # start the evert loop
 root.mainloop()
