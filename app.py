@@ -164,7 +164,9 @@ root.grid_columnconfigure([1,2], weight=1, minsize=70)
 root.grid_rowconfigure(0, weight=1, minsize=20)
 root.grid_rowconfigure(1, weight=1, minsize=20)
 root.grid_rowconfigure([2,3], weight=1, minsize=10)
-root.wm_attributes('-transparentcolor', 'grey')
+#root.wm_attributes('-transparentcolor', 'grey')
+root.attributes('-alpha', 0.5)  # Set transparency to 50%
+
 
 
 # Add a label
