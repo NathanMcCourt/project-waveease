@@ -44,11 +44,11 @@ def main():
 
                 # Detect finger pointing up
                 if fingers[1] and all(not f for f in fingers[2:]):
-                    pyautogui.press('volumeup')
+                    pyautogui.hotkey('ctrl', 'down')
                     print("Volume Up")
                 # Detect finger pointing down
                 elif not fingers[1] and all(not f for f in fingers[2:]):
-                    pyautogui.press('volumedown')
+                    pyautogui.hotkey('ctrl', 'up')
                     print("Volume Down")
 
                 # Print the corresponding number based on the number of fingers stretched out
