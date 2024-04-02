@@ -6,15 +6,15 @@ import mediapipe as mp
 from math import sqrt
 import urllib.request
 from pynput.mouse import Button, Controller
-
+from screeninfo import get_monitors
 
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
 cap.set(3, 480)
 cap.set(4, 360)
 
-screen_width = 1920
-screen_height = 1080
+#Set your resolution here
+screen_width, screen_height = get_monitors()[0].width, get_monitors()[0].height
 
 mpHands = mp.solutions.hands
 hands = mpHands.Hands(max_num_hands=1)
@@ -91,7 +91,10 @@ while True:
 
                     mouseLoc = mouseOldLoc + (
                                 (center_thumb_index_x, center_thumb_index_y) - mouseOldLoc) / dampingFactor
-
+                    if mouseLoc.any():
+                        scaled_x = np.interp(mouseLoc[0], [0, w], [0, screen_width])
+                        scaled_y = np.interp(mouseLoc[1], [0, h], [0, screen_height])
+                        mouse.position = (scaled_x, scaled_y)
                     mouse_x = int((mouseLoc[0] * screen_width / 600))
                     mouse_y = int((mouseLoc[1] * screen_height / 360))
 
