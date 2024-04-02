@@ -10,5 +10,3 @@
 
 # PTH files
 .checkpoints/imagebind_huge.pth
-
-cleanup.py
