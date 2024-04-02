@@ -5,7 +5,39 @@ import time
 import os
 from datetime import datetime
 
+from imagebind import data
+import torch
+from imagebind.models import imagebind_model
+from imagebind.models.imagebind_model import ModalityType
+
+
 TIMEOUT_SECONDS = 5
+
+# Initial ImageBind model
+# device = "cuda:0" if torch.cuda.is_available() else "cpu"
+# model = imagebind_model.imagebind_huge(pretrained=True)
+# model.eval()
+# model.to(device)
+
+
+# def analyze_with_imagebind(file_path):
+#     # List of articles by category
+#     inputs = None
+#     if file_path.endswith('.avi'):
+#         inputs = {
+#             ModalityType.VISION: data.load_and_transform_video_data([file_path], device),
+#         }
+#     elif file_path.endswith('.jpg'):
+#         inputs = {
+#             ModalityType.VISION: data.load_and_transform_vision_data([file_path], device),
+#         }
+#
+#     if inputs is not None:
+#         with torch.no_grad():
+#             embeddings = model(inputs)
+#         print("Analysis completed：", embeddings)
+#     else:
+#         print("Unsupportive sentence category")
 
 
 class LandmarkKalmanFilter:
@@ -39,12 +71,10 @@ class MovementDetector:
     def update_position(self, position):
         current_time = time.time()
         self.previous_positions.append((current_time, position))
-        # 清除超出时间窗口的旧数据
         self.previous_positions = [pos for pos in self.previous_positions if current_time - pos[0] <= self.window_size]
 
     def has_moved(self):
         if len(self.previous_positions) > 1:
-            # 计算位置变化
             start_position = self.previous_positions[0][1]
             end_position = self.previous_positions[-1][1]
             displacement = np.linalg.norm(end_position - start_position)
@@ -197,6 +227,7 @@ def start_capture():
         else:
             recorded_time = time.time() - last_hand_detected_time
             if recorded_time > TIMEOUT_SECONDS:
+                print("No hand detected.")
                 print("Pass " + str(TIMEOUT_SECONDS) + " seconds without hand.")
                 last_hand_detected_time = time.time()
 
@@ -211,10 +242,14 @@ def start_capture():
                     for frame in frames: out.write(frame)
                     out.release()
                     print(f"Saved video: {timestamp}.avi")
+                    # analyze_with_imagebind(video_filename)
+                    # print("Analyzed with imagebind (video)")
                 elif frames:
                     photo_filename = f'captures/photos/{timestamp}.jpg'
                     cv2.imwrite(photo_filename, frames[-1])
                     print(f"Saved photo: {timestamp}.jpg")
+                    # analyze_with_imagebind(photo_filename)
+                    # print("Analyzed with imagebind (picture)")
                 else:
                     print("No frames captured")
 
