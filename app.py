@@ -4,8 +4,8 @@ import tkinter as tk
 import cv2 as cv
 from setuptools import launch
 import utile as utile
-import Camera
-import Camera as camera
+import camera
+import camera as camera
 from tkinter import messagebox, ttk
 from PIL import Image, ImageTk
 
