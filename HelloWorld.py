@@ -3,6 +3,8 @@ import torch
 from imagebind.models import imagebind_model
 from imagebind.models.imagebind_model import ModalityType
 
+# A test file for imagebind
+
 text_list=["A dog.", "A car", "A bird"]
 image_paths=[".assets/dog_image.jpg", ".assets/car_image.jpg", ".assets/bird_image.jpg"]
 audio_paths=[".assets/dog_audio.wav", ".assets/car_audio.wav", ".assets/bird_audio.wav"]
