@@ -110,99 +110,99 @@ while True:
             toggle = False
             print("Release left hold")
             # With only the index and middle fingers up, it is considered to be moving the mouse
-            if fingers[1] == 1 and fingers[2] == 1 and sum(fingers) == 2 and frame >= 1:
-                # move mouse
-                autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
+        if fingers[1] == 1 and fingers[2] == 1 and sum(fingers) == 2 and frame >= 1:
+            # move mouse
+            autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
 
-                print("Move mouse")
+            print("Move mouse")
 
-                # Update the coordinates of the mouse position of the previous frame.
-                pLocx, pLocy = cLocx, cLocy
+            # Update the coordinates of the mouse position of the previous frame.
+            pLocx, pLocy = cLocx, cLocy
 
-                # If the index and middle fingers are up and the distance between the fingertips is less than a certain
-                # value, it is considered to be a mouse click. A mouse click is considered a mouse click when the distance between the fingers is less than 43 (pixel distance)
-                if distance < 43 and frame >= 1:
-                    # Draw a green circle on the tip of your index finger to indicate that you are clicking the mouse
-                    cv2.circle(img, (x1, y1), 15, (0, 255, 0), cv2.FILLED)
+            # If the index and middle fingers are up and the distance between the fingertips is less than a certain
+            # value, it is considered to be a mouse click. A mouse click is considered a mouse click when the distance between the fingers is less than 43 (pixel distance)
+            if distance < 43 and frame >= 1:
+                # Draw a green circle on the tip of your index finger to indicate that you are clicking the mouse
+                cv2.circle(img, (x1, y1), 15, (0, 255, 0), cv2.FILLED)
 
-                    # left click on the mouse
-                    autopy.mouse.click(button=autopy.mouse.Button.LEFT, delay=0)
-                    cv2.putText(img, "left_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-                    print("Left Click")
-                else:
-                    cv2.putText(img, "move", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-            # Bend your middle finger and put your index finger on top. Right click on the mouse.
-            elif fingers[1] == 1 and fingers[2] == 0 and sum(fingers) == 1 and frame >= 2:
-                autopy.mouse.click(button=autopy.mouse.Button.RIGHT, delay=0)
-                print("Right click")
-                cv2.putText(img, "rigth_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-                cv2.circle(img, (x2, y2), 15, (0, 255, 0), cv2.FILLED)
+                # left click on the mouse
+                autopy.mouse.click(button=autopy.mouse.Button.LEFT, delay=0)
+                cv2.putText(img, "left_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+                print("Left Click")
+            else:
+                cv2.putText(img, "move", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+        # Bend your middle finger and put your index finger on top. Right click on the mouse.
+        elif fingers[1] == 1 and fingers[2] == 0 and sum(fingers) == 1 and frame >= 2:
+            autopy.mouse.click(button=autopy.mouse.Button.RIGHT, delay=0)
+            print("Right click")
+            cv2.putText(img, "rigth_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+            cv2.circle(img, (x2, y2), 15, (0, 255, 0), cv2.FILLED)
 
-            # Five-finger grip, press left button firmly to drag and drop
-            elif fingers == [0, 0, 0, 0, 0]:
-                if toggle == False:
-                    autopy.mouse.toggle(None, True)
-                    print("Hold left click")
-                toggle = True
-                autopy.mouse.move(cLocx, cLocy)
-                pLocx, pLocy = cLocx, cLocy
-                cv2.putText(img, "drag", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-                print("Drag mouse")
+        # Five-finger grip, press left button firmly to drag and drop
+        elif fingers == [0, 0, 0, 0, 0]:
+            if toggle == False:
+                autopy.mouse.toggle(None, True)
+                print("Hold left click")
+            toggle = True
+            autopy.mouse.move(cLocx, cLocy)
+            pLocx, pLocy = cLocx, cLocy
+            cv2.putText(img, "drag", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+            print("Drag mouse")
 
-            # Thumbs open, others bent, press up button once
-            elif fingers == [1, 0, 0, 0, 0] and frame >= 2:
-                cv2.putText(img, "UP", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-                if (active_window_process_name == "spotify.exe"):
-                    print("#############################################")
-                    autopy.key.toggle(autopy.key.Code.LEFT_ARROW, True, [autopy.key.Modifier.CONTROL])
-                    autopy.key.toggle(autopy.key.Code.LEFT_ARROW, False, [autopy.key.Modifier.CONTROL])
-                    print("Last play")
-                    time.sleep(0.3)
-                else:
-                    autopy.key.toggle(autopy.key.Code.UP_ARROW, True, [])
-                    autopy.key.toggle(autopy.key.Code.UP_ARROW, False, [])
-                    print("Up and down")
+        # Thumbs open, others bent, press up button once
+        elif fingers == [1, 0, 0, 0, 0] and frame >= 2:
+            cv2.putText(img, "UP", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+            if (active_window_process_name== "Spotify.exe"):
+                print("#############################################")
+                autopy.key.toggle(autopy.key.Code.LEFT_ARROW, True, [autopy.key.Modifier.CONTROL])
+                autopy.key.toggle(autopy.key.Code.LEFT_ARROW, False, [autopy.key.Modifier.CONTROL])
+                print("Last play")
+                time.sleep(0.3)
+            else:
+                autopy.key.toggle(autopy.key.Code.UP_ARROW, True, [])
+                autopy.key.toggle(autopy.key.Code.UP_ARROW, False, [])
+                print("Up and down")
 
-                    time.sleep(0.3)
+                time.sleep(0.3)
 
-            # Thumb bent, others vertical, press down key once
-            elif fingers == [0, 1, 1, 1, 1] and frame >= 2:
-                cv2.putText(img, "Down", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-                if (active_window_process_name == "spotify.exe"):
-                    print("#############################################")
-                    autopy.key.toggle(autopy.key.Code.RIGHT_ARROW, True, [autopy.key.Modifier.CONTROL])
-                    autopy.key.toggle(autopy.key.Code.RIGHT_ARROW, False, [autopy.key.Modifier.CONTROL])
-                    print("Next play")
-                    time.sleep(0.3)
-                else:
-                    autopy.key.toggle(autopy.key.Code.DOWN_ARROW, True, [])
-                    autopy.key.toggle(autopy.key.Code.DOWN_ARROW, False, [])
+        # Thumb bent, others vertical, press down key once
+        elif fingers == [0, 1, 1, 1, 1] and frame >= 2:
+            cv2.putText(img, "Down", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+            if (active_window_process_name == "Spotify.exe"):
+                print("#############################################")
+                autopy.key.toggle(autopy.key.Code.RIGHT_ARROW, True, [autopy.key.Modifier.CONTROL])
+                autopy.key.toggle(autopy.key.Code.RIGHT_ARROW, False, [autopy.key.Modifier.CONTROL])
+                print("Next play")
+                time.sleep(0.3)
+            else:
+                autopy.key.toggle(autopy.key.Code.DOWN_ARROW, True, [])
+                autopy.key.toggle(autopy.key.Code.DOWN_ARROW, False, [])
 
-                    print("Press down")
-                    time.sleep(0.3)
+                print("Press down")
+                time.sleep(0.3)
 
-            # OK-like gestures for volume adjustment
-            elif fingers == [1, 0, 1, 1, 1] and frame >= 5:
-                autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
-                length = cLocx - pLocx
-                pLocx = cLocx
-                pLocy = cLocy
-                print("Move length:", length)
-                print("Move mouse to adjust the volume")
-                currentVolumeLv = volume.GetMasterVolumeLevelScalar()
-                print("currentVolume:", currentVolumeLv)
-                currentVolumeLv += length / 50.0
-                if currentVolumeLv > 1.0:
-                    currentVolumeLv = 1.0
-                elif currentVolumeLv < 0.0:
-                    currentVolumeLv = 0.0
-                volume.SetMasterVolumeLevelScalar(currentVolumeLv, None)
-                setVolume = volume.GetMasterVolumeLevelScalar()
-                volPer = setVolume
-                volBar = 350 - int((volPer) * 200)
-                cv2.rectangle(img, (20, 150), (50, 350), (255, 0, 255), 2)
-                cv2.rectangle(img, (20, int(volBar)), (50, 350), (255, 0, 255), cv2.FILLED)
-                cv2.putText(img, f'{int(volPer * 100)}%', (10, 380), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
+        # OK-like gestures for volume adjustment
+        elif fingers == [1, 0, 1, 1, 1] and frame >= 5:
+            autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
+            length = cLocx - pLocx
+            pLocx = cLocx
+            pLocy = cLocy
+            print("Move length:", length)
+            print("Move mouse to adjust the volume")
+            currentVolumeLv = volume.GetMasterVolumeLevelScalar()
+            print("currentVolume:", currentVolumeLv)
+            currentVolumeLv += length / 50.0
+            if currentVolumeLv > 1.0:
+                currentVolumeLv = 1.0
+            elif currentVolumeLv < 0.0:
+                currentVolumeLv = 0.0
+            volume.SetMasterVolumeLevelScalar(currentVolumeLv, None)
+            setVolume = volume.GetMasterVolumeLevelScalar()
+            volPer = setVolume
+            volBar = 350 - int((volPer) * 200)
+            cv2.rectangle(img, (20, 150), (50, 350), (255, 0, 255), 2)
+            cv2.rectangle(img, (20, int(volBar)), (50, 350), (255, 0, 255), cv2.FILLED)
+            cv2.putText(img, f'{int(volPer * 100)}%', (10, 380), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
 
     # Display image
     # FPS Show
