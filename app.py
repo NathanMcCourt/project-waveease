@@ -163,8 +163,9 @@ root.grid_columnconfigure([1,2], weight=1, minsize=70)
 
 root.grid_rowconfigure(0, weight=1, minsize=20)
 root.grid_rowconfigure(1, weight=1, minsize=20)
-root.grid_rowconfigure([2,3], weight=1, minsize=10)
-root.wm_attributes('-transparentcolor', 'grey')
+#root.grid_rowconfigure([2,3], weight=1, minsize=10) ## does not work for Mac
+root.attributes('-alpha', 1.0) 
+
 
 
 # Add a label
