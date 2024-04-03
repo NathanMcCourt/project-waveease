@@ -108,6 +108,61 @@ while True:
             autopy.mouse.toggle(None, False)
             toggle = False
             print("Release left hold")
+            # With only the index and middle fingers up, it is considered to be moving the mouse
+            if fingers[1] == 1 and fingers[2] == 1 and sum(fingers) == 2 and frame >= 1:
+                # move mouse
+                autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
+
+                print("Move mouse")
+
+                # Update the coordinates of the mouse position of the previous frame.
+                pLocx, pLocy = cLocx, cLocy
+
+                # If the index and middle fingers are up and the distance between the fingertips is less than a certain
+                # value, it is considered to be a mouse click. A mouse click is considered a mouse click when the distance between the fingers is less than 43 (pixel distance)
+                if distance < 43 and frame >= 1:
+                    # Draw a green circle on the tip of your index finger to indicate that you are clicking the mouse
+                    cv2.circle(img, (x1, y1), 15, (0, 255, 0), cv2.FILLED)
+
+                    # left click on the mouse
+                    autopy.mouse.click(button=autopy.mouse.Button.LEFT, delay=0)
+                    cv2.putText(img, "left_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+                    print("Left Click")
+                else:
+                    cv2.putText(img, "move", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+            # Bend your middle finger and put your index finger on top. Right click on the mouse.
+            elif fingers[1] == 1 and fingers[2] == 0 and sum(fingers) == 1 and frame >= 2:
+                autopy.mouse.click(button=autopy.mouse.Button.RIGHT, delay=0)
+                print("Right click")
+                cv2.putText(img, "rigth_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+                cv2.circle(img, (x2, y2), 15, (0, 255, 0), cv2.FILLED)
+
+            # Five-finger grip, press left button firmly to drag and drop
+            elif fingers == [0, 0, 0, 0, 0]:
+                if toggle == False:
+                    autopy.mouse.toggle(None, True)
+                    print("Hold left click")
+                toggle = True
+                autopy.mouse.move(cLocx, cLocy)
+                pLocx, pLocy = cLocx, cLocy
+                cv2.putText(img, "drag", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+                print("Drag mouse")
+
+            # Thumbs open, others bent, press up button once
+            elif fingers == [1, 0, 0, 0, 0] and frame >= 2:
+                cv2.putText(img, "UP", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+                if (active_window_process_name == "spotify.exe"):
+                    print("#############################################")
+                    autopy.key.toggle(autopy.key.Code.LEFT_ARROW, True, [autopy.key.Modifier.CONTROL])
+                    autopy.key.toggle(autopy.key.Code.LEFT_ARROW, False, [autopy.key.Modifier.CONTROL])
+                    print("Last play")
+                    time.sleep(0.3)
+                else:
+                    autopy.key.toggle(autopy.key.Code.UP_ARROW, True, [])
+                    autopy.key.toggle(autopy.key.Code.UP_ARROW, False, [])
+                    print("Up and down")
+
+                    time.sleep(0.3)
 
     # Display image
     # FPS Show
