@@ -104,7 +104,10 @@ while True:
         else:
             frame = 0
         prev_state = current_state
-
+        if fingers != [0, 0, 0, 0, 0] and toggle and frame >= 2:
+            autopy.mouse.toggle(None, False)
+            toggle = False
+            print("Release left hold")
 
     # Display image
     # FPS Show
