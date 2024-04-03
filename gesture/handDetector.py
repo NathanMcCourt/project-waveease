@@ -148,12 +148,12 @@ class HandDetector:
 
     def findDistance(self, p1, p2, img=None):
         """
-        计算指尖距离
+        Calculate fingertip distance
         :param p1: Point1
         :param p2: Point2
-        :param img: 要绘制的图
-        :param draw: 标志变量
-        :return: 返回指尖距离，和绘制好的图
+        :param img: plot
+        :param draw: flag variable
+        :return: Return to fingertip distance, and plotted diagrams
         """
 
         x1, y1 = p1
@@ -162,10 +162,10 @@ class HandDetector:
         length = math.hypot(x2 - x1, y2 - y1)
         info = (x1, y1, x2, y2, cx, cy)
         if img is not None:
-            cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)  # 食指尖画紫圈
-            cv2.circle(img, (x2, y2), 15, (255, 0, 255), cv2.FILLED)  # 中指尖画紫圈
+            cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
+            cv2.circle(img, (x2, y2), 15, (255, 0, 255), cv2.FILLED)
             cv2.line(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
-            cv2.circle(img, (cx, cy), 15, (255, 0, 255), cv2.FILLED)  # 两指中间画紫圈
+            cv2.circle(img, (cx, cy), 15, (255, 0, 255), cv2.FILLED)
             return length, info, img
         else:
             return length, info
