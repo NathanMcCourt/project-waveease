@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from handDetector import HandDetector
 import time
+import utile as ut
 import autopy
 import win32gui, win32process, psutil
 from ctypes import cast, POINTER
@@ -163,6 +164,45 @@ while True:
                     print("Up and down")
 
                     time.sleep(0.3)
+
+            # Thumb bent, others vertical, press down key once
+            elif fingers == [0, 1, 1, 1, 1] and frame >= 2:
+                cv2.putText(img, "Down", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+                if (active_window_process_name == "spotify.exe"):
+                    print("#############################################")
+                    autopy.key.toggle(autopy.key.Code.RIGHT_ARROW, True, [autopy.key.Modifier.CONTROL])
+                    autopy.key.toggle(autopy.key.Code.RIGHT_ARROW, False, [autopy.key.Modifier.CONTROL])
+                    print("Next play")
+                    time.sleep(0.3)
+                else:
+                    autopy.key.toggle(autopy.key.Code.DOWN_ARROW, True, [])
+                    autopy.key.toggle(autopy.key.Code.DOWN_ARROW, False, [])
+
+                    print("Press down")
+                    time.sleep(0.3)
+
+            # OK-like gestures for volume adjustment
+            elif fingers == [1, 0, 1, 1, 1] and frame >= 5:
+                autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
+                length = cLocx - pLocx
+                pLocx = cLocx
+                pLocy = cLocy
+                print("Move length:", length)
+                print("Move mouse to adjust the volume")
+                currentVolumeLv = volume.GetMasterVolumeLevelScalar()
+                print("currentVolume:", currentVolumeLv)
+                currentVolumeLv += length / 50.0
+                if currentVolumeLv > 1.0:
+                    currentVolumeLv = 1.0
+                elif currentVolumeLv < 0.0:
+                    currentVolumeLv = 0.0
+                volume.SetMasterVolumeLevelScalar(currentVolumeLv, None)
+                setVolume = volume.GetMasterVolumeLevelScalar()
+                volPer = setVolume
+                volBar = 350 - int((volPer) * 200)
+                cv2.rectangle(img, (20, 150), (50, 350), (255, 0, 255), 2)
+                cv2.rectangle(img, (20, int(volBar)), (50, 350), (255, 0, 255), cv2.FILLED)
+                cv2.putText(img, f'{int(volPer * 100)}%', (10, 380), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
 
     # Display image
     # FPS Show
