@@ -14,30 +14,42 @@ from imagebind.models.imagebind_model import ModalityType
 TIMEOUT_SECONDS = 5
 
 # Initial ImageBind model
-# device = "cuda:0" if torch.cuda.is_available() else "cpu"
-# model = imagebind_model.imagebind_huge(pretrained=True)
-# model.eval()
-# model.to(device)
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+model = imagebind_model.imagebind_huge(pretrained=True)
+model.eval()
+model.to(device)
 
 
-# def analyze_with_imagebind(file_path):
-#     # List of articles by category
-#     inputs = None
-#     if file_path.endswith('.avi'):
-#         inputs = {
-#             ModalityType.VISION: data.load_and_transform_video_data([file_path], device),
-#         }
-#     elif file_path.endswith('.jpg'):
-#         inputs = {
-#             ModalityType.VISION: data.load_and_transform_vision_data([file_path], device),
-#         }
-#
-#     if inputs is not None:
-#         with torch.no_grad():
-#             embeddings = model(inputs)
-#         print("Analysis completed：", embeddings)
-#     else:
-#         print("Unsupportive sentence category")
+def analyze_with_imagebind(file_path):
+    # List of articles by category
+    inputs = None
+    lables = ["fist", "thumbs", "slap", "fourth", ""]
+
+    if file_path.endswith('.avi'):
+        inputs = {
+            ModalityType.TEXT:data.load_and_transform_text(lables,device),
+            ModalityType.VISION: data.load_and_transform_video_data([file_path], device),
+        }
+    elif file_path.endswith('.jpg'):
+        inputs = {
+            ModalityType.TEXT: data.load_and_transform_text(lables, device),
+            ModalityType.VISION: data.load_and_transform_vision_data([file_path], device),
+        }
+
+    if inputs is not None:
+        with torch.no_grad():
+            embeddings = model(inputs)
+        scores = (
+            torch.softmax(
+                embeddings[ModalityType.VISION] @ embeddings[ModalityType.TEXT].T, dim = -1
+            )
+            .squeeze(0)
+            .tolist()
+        )
+        score_dict = {label: score for label, score in zip(lables, scores)}
+        print("Analysis completed：", score_dict)
+    else:
+        print("Unsupportive sentence category")
 
 
 class LandmarkKalmanFilter:
@@ -242,14 +254,14 @@ def start_capture():
                     for frame in frames: out.write(frame)
                     out.release()
                     print(f"Saved video: {timestamp}.avi")
-                    # analyze_with_imagebind(video_filename)
-                    # print("Analyzed with imagebind (video)")
+                    analyze_with_imagebind(video_filename)
+                    print("Analyzed with imagebind (video)")
                 elif frames:
                     photo_filename = f'captures/photos/{timestamp}.jpg'
                     cv2.imwrite(photo_filename, frames[-1])
                     print(f"Saved photo: {timestamp}.jpg")
-                    # analyze_with_imagebind(photo_filename)
-                    # print("Analyzed with imagebind (picture)")
+                    analyze_with_imagebind(photo_filename)
+                    print("Analyzed with imagebind (picture)")
                 else:
                     print("No frames captured")
 
