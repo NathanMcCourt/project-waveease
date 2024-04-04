@@ -1,6 +1,10 @@
 import os
 import subprocess
 import platform
+
+import win32process
+import win32gui
+import psutil
 def find_spotify_path():
     os_type = platform.system()
     if os_type == "Windows":
@@ -29,3 +33,31 @@ def find_spotify_path():
 
 spotify_path = find_spotify_path()
 print(f"Spotify path: {spotify_path}")
+
+import platform
+
+def get_active_window_process_name_win():
+
+    try:
+        pid = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
+        active_window_process_name = psutil.Process(pid[-1]).name()
+        return active_window_process_name
+    except Exception as e:
+        return "Error: " + str(e)
+
+# def get_active_window_process_name_mac():
+#
+#     try:
+#         ws = AppKit.NSWorkspace.sharedWorkspace()
+#         active_app = ws.frontmostApplication()
+#         active_app_name = active_app.localizedName()
+#         return active_app_name
+#     except Exception as e:
+#         return "Error: " + str(e)
+
+if platform.system() == 'Windows':
+    print("Active window process name:", get_active_window_process_name_win())
+# elif platform.system() == 'Darwin':  # macOS is identified as 'Darwin'
+#     print("Active window process name:", get_active_window_process_name_mac())
+else:
+    print("Unsupported OS")
