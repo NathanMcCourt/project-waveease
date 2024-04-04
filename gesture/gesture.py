@@ -22,9 +22,9 @@ def start_recognition():
 
     # Create windows
     wScr, hScr = autopy.screen.size()  # Returns the width and height of the computer screen (1920.0, 1080.0)
-    wCam, hCam = 1280, 720  # Width and height of the video display window
+    wCam, hCam = 1280, 1280  # Width and height of the video display window
     pt1, pt2 = (100, 100), (
-    1000, 500)  # The range of movement of the virtual mouse, upper left coordinate pt1, lower right coordinate pt2
+        1000, 700)  # The range of movement of the virtual mouse, upper left coordinate pt1, lower right coordinate pt2
 
     cap = cv2.VideoCapture(0)  #
     cap.set(3, wCam)  #
@@ -237,4 +237,6 @@ def start_recognition():
     cap.release()
     cv2.destroyAllWindows()
 
-# if __name__ == '__main__':
+
+if __name__ == '__main__':
+    start_recognition()
