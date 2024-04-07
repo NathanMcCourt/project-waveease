@@ -47,7 +47,10 @@ def analyze_with_imagebind(file_path):
             .tolist()
         )
         score_dict = {label: score for label, score in zip(lables, scores)}
+        max_label = max(score_dict, key=score_dict.get)  # Finds the label with the highest score
         print("Analysis completed：", score_dict)
+        print(f"Analysis completed： {max_label} with a probability of {score_dict[max_label]:.2f}")
+
     else:
         print("Unsupportive sentence category")
 
