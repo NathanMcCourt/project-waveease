@@ -94,7 +94,7 @@ def open_settings():
     settings_window.geometry("300x250")
 
     # Camera and music app
-    avaible_camera = Camera.find_available_cameras()
+    avaible_camera = camera.find_available_cameras()
     camera_options = avaible_camera
     music_app_options = ["App music 1", "Spotify 2"]
 
@@ -169,7 +169,8 @@ root.attributes('-alpha', 1.0)
 
 
 # Add a label
-label = tk.Label(root, text=""" __          __         _                                       _              __          __                  ______                        
+label = tk.Label(root, text=""" 
+ __          __         _                                       _              __          __                  ______                        
  \ \        / /        | |                                     | |             \ \        / /                 |  ____|                       
   \ \  /\  / /    ___  | |   ___    ___    _ __ ___     ___    | |_    ___      \ \  /\  / /    __ _  __   __ | |__      __ _   ___    ___   
    \ \/  \/ /    / _ \ | |  / __|  / _ \  | '_ ` _ \   / _ \   | __|  / _ \      \ \/  \/ /    / _` | \ \ / / |  __|    / _` | / __|  / _ \  
