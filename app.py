@@ -6,6 +6,7 @@ from setuptools import launch
 import utile as utile
 import camera
 import camera as camera
+from cleanup import cleanup
 from tkinter import messagebox, ttk
 from PIL import Image, ImageTk
 
@@ -132,6 +133,7 @@ def open_settings():
 
 
 def exit_app():
+    cleanup()
     root.destroy()
     exit(0)
 
