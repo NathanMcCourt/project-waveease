@@ -196,6 +196,14 @@ def start_recognition():
                     App_pause = False
                     time.sleep(0.3)
 
+                # Detect finger pointing up
+            elif fingers[1] and all(not f for f in fingers[2:]):
+                pyautogui.hotkey('ctrl', 'down')
+                print("Volume Up")
+
+            elif not fingers[1] and all(not f for f in fingers[2:]):
+                pyautogui.hotkey('ctrl', 'up')
+                print("Volume Down")
             # OK-like gestures for volume adjustment
             elif fingers == [1, 0, 1, 1, 1] and frame >= 5:
                 autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
