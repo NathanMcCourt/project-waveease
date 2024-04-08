@@ -6,6 +6,7 @@ from setuptools import launch
 import utile as utile
 import camera
 import camera as camera
+from cleanup import cleanup
 from tkinter import messagebox, ttk
 from PIL import Image, ImageTk
 
@@ -94,7 +95,7 @@ def open_settings():
     settings_window.geometry("300x250")
 
     # Camera and music app
-    avaible_camera = Camera.find_available_cameras()
+    avaible_camera = camera.find_available_cameras()
     camera_options = avaible_camera
     music_app_options = ["App music 1", "Spotify 2"]
 
@@ -132,6 +133,7 @@ def open_settings():
 
 
 def exit_app():
+    cleanup()
     root.destroy()
     exit(0)
 
