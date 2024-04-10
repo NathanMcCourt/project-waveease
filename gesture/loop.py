@@ -56,13 +56,11 @@ def main():
                 # The thumb is a slightly special case, judged here by its x-coordinate #
                 thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
                 thumb_ip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_IP]
-                fingers.insert(0, thumb_tip.x < thumb_ip.x)
-
-                rect = calc_bounding_rect(img, hand_landmarks)
-
+                
                 # Detect "OK" hand sign
-                if fingers[0] and not any(fingers[1:]):
+                if fingers[1] and fingers[2] and fingers[3] and not fingers[0] and not any(fingers[4:]):
                     pyautogui.hotkey('ctrl', 'r')
+                    rect = calc_bounding_rect(img, hand_landmarks)
                     img = draw_info_text(img, "OK", rect)
 
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
@@ -76,3 +74,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
