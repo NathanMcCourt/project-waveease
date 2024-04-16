@@ -5,6 +5,55 @@ import time
 import os
 from datetime import datetime
 
+from imagebind import data
+import torch
+from imagebind.models import imagebind_model
+from imagebind.models.imagebind_model import ModalityType
+
+
+TIMEOUT_SECONDS = 5
+
+# Initial ImageBind model
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+model = imagebind_model.imagebind_huge(pretrained=True)
+model.eval()
+model.to(device)
+
+
+def analyze_with_imagebind(file_path):
+    # List of articles by category
+    inputs = None
+    lables = ["fist", "thumbs", "slap", "fourth", ""]
+
+    if file_path.endswith('.avi'):
+        inputs = {
+            ModalityType.TEXT:data.load_and_transform_text(lables,device),
+            ModalityType.VISION: data.load_and_transform_video_data([file_path], device),
+        }
+    elif file_path.endswith('.jpg'):
+        inputs = {
+            ModalityType.TEXT: data.load_and_transform_text(lables, device),
+            ModalityType.VISION: data.load_and_transform_vision_data([file_path], device),
+        }
+
+    if inputs is not None:
+        with torch.no_grad():
+            embeddings = model(inputs)
+        scores = (
+            torch.softmax(
+                embeddings[ModalityType.VISION] @ embeddings[ModalityType.TEXT].T, dim = -1
+            )
+            .squeeze(0)
+            .tolist()
+        )
+        score_dict = {label: score for label, score in zip(lables, scores)}
+        max_label = max(score_dict, key=score_dict.get)  # Finds the label with the highest score
+        print("Analysis completed：", score_dict)
+        print(f"Analysis completed： {max_label} with a probability of {score_dict[max_label]:.2f}")
+
+    else:
+        print("Unsupportive sentence category")
+
 
 class LandmarkKalmanFilter:
     """Class to encapsulate Kalman filter setup for smoothing landmark movements."""
@@ -37,12 +86,10 @@ class MovementDetector:
     def update_position(self, position):
         current_time = time.time()
         self.previous_positions.append((current_time, position))
-        # 清除超出时间窗口的旧数据
         self.previous_positions = [pos for pos in self.previous_positions if current_time - pos[0] <= self.window_size]
 
     def has_moved(self):
         if len(self.previous_positions) > 1:
-            # 计算位置变化
             start_position = self.previous_positions[0][1]
             end_position = self.previous_positions[-1][1]
             displacement = np.linalg.norm(end_position - start_position)
@@ -88,10 +135,13 @@ def start_capture():
 
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     frame_size = (int(cap.get(3)), int(cap.get(4)))
-    recording_time_start = time.time()
     frames = []
 
     significant_movement_detected = False
+    is_tracking_time = False
+    start_time = time.time()
+    last_hand_detected_time = time.time()
+
 
     # MediaPipe hands setup
     mp_hands = mp.solutions.hands
@@ -116,6 +166,9 @@ def start_capture():
         results = hands.process(imgRGB)
 
         if results.multi_hand_landmarks:
+            if not is_tracking_time:
+                start_time = time.time()  # Start the timer
+                is_tracking_time = True
             for hand_index, hand_landmarks in enumerate(results.multi_hand_landmarks):
                 # Check and create Kalman filters for the detected hand
                 if hand_index not in kalman_filters:
@@ -186,27 +239,46 @@ def start_capture():
                 del movement_detectors[hand_index]
                 del previous_positions[hand_index]
 
-            # Check if 2 seconds have passed
-        if time.time() - recording_time_start >= 2.0:
-            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            if significant_movement_detected:
-                video_filename = f'captures/videos/{timestamp}.avi'
-                out = cv2.VideoWriter(video_filename, fourcc, 20.0, frame_size)
-                for frame in frames:                        out.write(frame)
-                out.release()
-                print(f"Saved video: {timestamp}.avi")
-            else:
-                photo_filename = f'captures/photos/{timestamp}.jpg'
-                cv2.imwrite(photo_filename, frames[-1])
-                print(f"Saved photo: {timestamp}.jpg")
+        else:
+            recorded_time = time.time() - last_hand_detected_time
+            if recorded_time > TIMEOUT_SECONDS:
+                print("No hand detected.")
+                print("Pass " + str(TIMEOUT_SECONDS) + " seconds without hand.")
+                last_hand_detected_time = time.time()
 
-            # Reset for the next 2 seconds
-            recording_time_start = time.time()
-            frames = []
-            significant_movement_detected = False
+        # Check if x seconds have passed
+        if is_tracking_time:
+            if time.time() - start_time > TIMEOUT_SECONDS:
+                print("Pass " + str(TIMEOUT_SECONDS) + " seconds.")
+                timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+                if significant_movement_detected and frames:
+                    video_filename = f'captures/videos/{timestamp}.avi'
+                    out = cv2.VideoWriter(video_filename, fourcc, 20.0, frame_size)
+                    for frame in frames: out.write(frame)
+                    out.release()
+                    print(f"Saved video: {timestamp}.avi")
+                    analyze_with_imagebind(video_filename)
+                    print("Analyzed with imagebind (video)")
+                elif frames:
+                    photo_filename = f'captures/photos/{timestamp}.jpg'
+                    cv2.imwrite(photo_filename, frames[-1])
+                    print(f"Saved photo: {timestamp}.jpg")
+                    analyze_with_imagebind(photo_filename)
+                    print("Analyzed with imagebind (picture)")
+                else:
+                    print("No frames captured")
+
+                # Reset for the next x seconds
+                frames = []
+                significant_movement_detected = False
+                is_tracking_time = False
+                start_time = time.time()
+                last_hand_detected_time = time.time()
 
         cv2.imshow("Hands", img)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+
+        # Use ESC to quit
+        if cv2.waitKey(1) & 0xFF == 27:
             break
 
     cap.release()

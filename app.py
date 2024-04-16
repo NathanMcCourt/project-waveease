@@ -4,10 +4,9 @@ import tkinter as tk
 import cv2 as cv
 from setuptools import launch
 import utile as utile
-import Camera
-import Camera as camera
-import gesture.gesture as gs
-import gesture.handDetector as hd
+import camera
+import camera as camera
+from cleanup import cleanup
 from tkinter import messagebox, ttk
 from PIL import Image, ImageTk
 
@@ -76,13 +75,8 @@ settings = {
 }
 
 
-def start_gesture_recognition_imagebind():
+def start_gesture_recognition():
     camera.start_capture()
-    messagebox.showinfo("message", "recognition closed!")
-
-
-def start_gesture_recognition_standard():
-    gs.start_recognition()
     messagebox.showinfo("message", "recognition closed!")
 
 
@@ -101,7 +95,7 @@ def open_settings():
     settings_window.geometry("300x250")
 
     # Camera and music app
-    avaible_camera = Camera.find_available_cameras()
+    avaible_camera = camera.find_available_cameras()
     camera_options = avaible_camera
     music_app_options = ["App music 1", "Spotify 2"]
 
@@ -139,9 +133,9 @@ def open_settings():
 
 
 def exit_app():
+    cleanup()
     root.destroy()
     exit(0)
-
 
 def launch_app():
     spotify_path = utile.find_spotify_path()
@@ -155,21 +149,26 @@ def launch_app():
         print("Spotify installation not found.")
 
 
+
+
+
 # Create the main windows
 root = tk.Tk()
 root.title("WavEase!")
 root.geometry("500x300")  # initial size
-root.minsize(800, 300)
+root.minsize(500, 300)
 root.configure(background="#c3c3c3")
 
 # layout
-root.grid_columnconfigure([1, 2], weight=1, minsize=70)
-# root.grid_columnconfigure(1, weight=1, minsize=70)
+root.grid_columnconfigure([1,2], weight=1, minsize=70)
+#root.grid_columnconfigure(1, weight=1, minsize=70)
 
 root.grid_rowconfigure(0, weight=1, minsize=20)
 root.grid_rowconfigure(1, weight=1, minsize=20)
-# root.grid_rowconfigure([2,3], weight=1, minsize=10) ## does not work for Mac
-root.attributes('-alpha', 1.0)
+#root.grid_rowconfigure([2,3], weight=1, minsize=10) ## does not work for Mac
+root.attributes('-alpha', 1.0) 
+
+
 
 # Add a label
 label = tk.Label(root, text=""" __          __         _                                       _              __          __                  ______                        
@@ -182,20 +181,17 @@ label = tk.Label(root, text=""" __          __         _                        
 label.grid(row=1, column=1, sticky="nsew", padx=8, pady=8, columnspan=2)
 
 # Add Button
-start_button = tk.Button(root, text="Start Recognition(ImageBind Mode)", command=start_gesture_recognition_imagebind)
+start_button = tk.Button(root, text="Start Recognition", command=start_gesture_recognition)
 start_button.grid(row=2, column=1, padx=8, pady=8, ipadx=30, ipady=5)
 
-start_button = tk.Button(root, text="Start Recognition(Standard Mode)", command=start_gesture_recognition_standard)
-start_button.grid(row=2, column=3, padx=8, pady=8, ipadx=30, ipady=5)
-
 launch_button = tk.Button(root, text="Launch app", command=launch_app)
-launch_button.grid(row=3, column=2, padx=8, pady=8, ipadx=30, ipady=5)
+launch_button.grid(row=2, column=2, padx=8, pady=8, ipadx=30, ipady=5)
 
 settings_button = tk.Button(root, text="Settings", command=open_settings)
-settings_button.grid(row=4, column=1, padx=8, pady=8, ipadx=30, ipady=5)
+settings_button.grid(row=3, column=1, padx=8, pady=8, ipadx=30, ipady=5)
 
 exit_button = tk.Button(root, text="Exit", command=exit_app)
-exit_button.grid(row=4, column=3, padx=8, pady=8, ipadx=30, ipady=5)
+exit_button.grid(row=3, column=2, padx=8, pady=8, ipadx=30, ipady=5)
 
 # start the evert loop
 root.mainloop()
