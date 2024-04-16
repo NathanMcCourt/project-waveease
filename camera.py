@@ -5,54 +5,55 @@ import time
 import os
 from datetime import datetime
 
-from imagebind import data
-import torch
-from imagebind.models import imagebind_model
-from imagebind.models.imagebind_model import ModalityType
+# imagebind stuff
+# from imagebind import data
+# import torch
+# from imagebind.models import imagebind_model
+# from imagebind.models.imagebind_model import ModalityType
 
 
 TIMEOUT_SECONDS = 5
 
 # Initial ImageBind model
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
-model = imagebind_model.imagebind_huge(pretrained=True)
-model.eval()
-model.to(device)
+# device = "cuda:0" if torch.cuda.is_available() else "cpu"
+# model = imagebind_model.imagebind_huge(pretrained=True)
+# model.eval()
+# model.to(device)
 
-
-def analyze_with_imagebind(file_path):
-    # List of articles by category
-    inputs = None
-    lables = ["fist", "thumbs", "slap", "fourth", ""]
-
-    if file_path.endswith('.avi'):
-        inputs = {
-            ModalityType.TEXT:data.load_and_transform_text(lables,device),
-            ModalityType.VISION: data.load_and_transform_video_data([file_path], device),
-        }
-    elif file_path.endswith('.jpg'):
-        inputs = {
-            ModalityType.TEXT: data.load_and_transform_text(lables, device),
-            ModalityType.VISION: data.load_and_transform_vision_data([file_path], device),
-        }
-
-    if inputs is not None:
-        with torch.no_grad():
-            embeddings = model(inputs)
-        scores = (
-            torch.softmax(
-                embeddings[ModalityType.VISION] @ embeddings[ModalityType.TEXT].T, dim = -1
-            )
-            .squeeze(0)
-            .tolist()
-        )
-        score_dict = {label: score for label, score in zip(lables, scores)}
-        max_label = max(score_dict, key=score_dict.get)  # Finds the label with the highest score
-        print("Analysis completed：", score_dict)
-        print(f"Analysis completed： {max_label} with a probability of {score_dict[max_label]:.2f}")
-
-    else:
-        print("Unsupportive sentence category")
+#
+# def analyze_with_imagebind(file_path):
+#     # List of articles by category
+#     inputs = None
+#     lables = ["fist", "thumbs", "slap", "fourth", ""]
+#
+#     if file_path.endswith('.avi'):
+#         inputs = {
+#             ModalityType.TEXT:data.load_and_transform_text(lables,device),
+#             ModalityType.VISION: data.load_and_transform_video_data([file_path], device),
+#         }
+#     elif file_path.endswith('.jpg'):
+#         inputs = {
+#             ModalityType.TEXT: data.load_and_transform_text(lables, device),
+#             ModalityType.VISION: data.load_and_transform_vision_data([file_path], device),
+#         }
+#
+#     if inputs is not None:
+#         with torch.no_grad():
+#             embeddings = model(inputs)
+#         scores = (
+#             torch.softmax(
+#                 embeddings[ModalityType.VISION] @ embeddings[ModalityType.TEXT].T, dim = -1
+#             )
+#             .squeeze(0)
+#             .tolist()
+#         )
+#         score_dict = {label: score for label, score in zip(lables, scores)}
+#         max_label = max(score_dict, key=score_dict.get)  # Finds the label with the highest score
+#         print("Analysis completed：", score_dict)
+#         print(f"Analysis completed： {max_label} with a probability of {score_dict[max_label]:.2f}")
+#
+#     else:
+#         print("Unsupportive sentence category")
 
 
 class LandmarkKalmanFilter:
