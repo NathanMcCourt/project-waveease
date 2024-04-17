@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import pyautogui
 
-from .handDetector import HandDetector
+from handDetector import HandDetector
 import time
 import utile as ut
 import autopy
@@ -116,7 +116,7 @@ def start_recognition():
                 toggle = False
                 print("Release left hold")
                 # With only the index and middle fingers up, it is considered to be moving the mouse
-            if fingers[1] == 1 and fingers[2] == 1 and sum(fingers) == 2 and frame >= 1:
+            if fingers[0] == 1 and fingers[1] == 1 and fingers[2] == 1 and sum(fingers) == 3 and frame >= 1:
                 # move mouse
                 autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
 
@@ -127,7 +127,7 @@ def start_recognition():
 
                 # If the index and middle fingers are up and the distance between the fingertips is less than a certain
                 # value, it is considered to be a mouse click. A mouse click is considered a mouse click when the distance between the fingers is less than 43 (pixel distance)
-                if distance < 43 and frame >= 1:
+                if fingers[0] == 0 and frame >= 1:
                     # Draw a green circle on the tip of your index finger to indicate that you are clicking the mouse
                     cv2.circle(img, (x1, y1), 15, (0, 255, 0), cv2.FILLED)
 

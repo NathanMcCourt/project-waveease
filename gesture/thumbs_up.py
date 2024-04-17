@@ -79,6 +79,7 @@ def main():
                 # Detect Thumbs up
                 if fingers[0] and all(not f for f in fingers[2:]):
                     img = draw_info_text(img, "Thumbs Up!!!", rect)
+                    print("Thumbs Up!!!")
 
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 

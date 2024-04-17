@@ -49,6 +49,7 @@ while True:
     cv2.rectangle(frame, (200, 10), (210, 20), (0, 255, 0), -1)
     cv2.putText(frame, "Click", (220, 22), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 1)
 
+
     cv2.rectangle(frame, (300, 10), (310, 20), (0, 0, 255), -1)
     cv2.putText(frame, "Scroll Down", (320, 22), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 1)
 

@@ -258,13 +258,13 @@ def start_capture():
                     for frame in frames: out.write(frame)
                     out.release()
                     print(f"Saved video: {timestamp}.avi")
-                    analyze_with_imagebind(video_filename)
+                    #analyze_with_imagebind(video_filename)
                     print("Analyzed with imagebind (video)")
                 elif frames:
                     photo_filename = f'captures/photos/{timestamp}.jpg'
                     cv2.imwrite(photo_filename, frames[-1])
                     print(f"Saved photo: {timestamp}.jpg")
-                    analyze_with_imagebind(photo_filename)
+                    #analyze_with_imagebind(photo_filename)
                     print("Analyzed with imagebind (picture)")
                 else:
                     print("No frames captured")
