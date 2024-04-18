@@ -178,13 +178,13 @@ root = tk.Tk()
 root.title("WavEase!")
 root.geometry("500x300")  # initial size
 root.minsize(500, 300)
-root.configure(background="#c3c3c3")
+root.configure(background="#87CEEB")
 
 # layout
 root.grid_columnconfigure([1,2], weight=1, minsize=70)
 #root.grid_columnconfigure(1, weight=1, minsize=70)
 
-root.grid_rowconfigure(0, weight=1, minsize=20)
+root.grid_rowconfigure(0, weight=0, minsize=10)
 root.grid_rowconfigure(1, weight=1, minsize=20)
 #root.grid_rowconfigure([2,3], weight=1, minsize=10) ## does not work for Mac
 root.attributes('-alpha', 1.0) 
@@ -192,14 +192,19 @@ root.attributes('-alpha', 1.0)
 
 
 # Add a label
-label = tk.Label(root, text=r"""\
- __          __         _                                       _              __          __                  ______                        
- \ \        / /        | |                                     | |             \ \        / /                 |  ____|                       
-  \ \  /\  / /    ___  | |   ___    ___    _ __ ___     ___    | |_    ___      \ \  /\  / /    __ _  __   __ | |__      __ _   ___    ___   
-   \ \/  \/ /    / _ \ | |  / __|  / _ \  | '_ ` _ \   / _ \   | __|  / _ \      \ \/  \/ /    / _` | \ \ / / |  __|    / _` | / __|  / _ \  
-    \  /\  /    |  __/ | | | (__  | (_) | | | | | | | |  __/   | |_  | (_) |      \  /\  /    | (_| |  \ V /  | |____  | (_| | \__ \ |  __/  
-     \/  \/      \___| |_|  \___|  \___/  |_| |_| |_|  \___|    \__|  \___/        \/  \/      \__,_|   \_/   |______|  \__,_| |___/  \___|""", background='#c3c3c3')
+#label = tk.Label(root, text=r"""\
+# __          __         _                                       _              __          __                  ______                        
+# \ \        / /        | |                                     | |             \ \        / /                 |  ____|                       
+#  \ \  /\  / /    ___  | |   ___    ___    _ __ ___     ___    | |_    ___      \ \  /\  / /    __ _  __   __ | |__      __ _   ___    ___   
+#   \ \/  \/ /    / _ \ | |  / __|  / _ \  | '_ ` _ \   / _ \   | __|  / _ \      \ \/  \/ /    / _` | \ \ / / |  __|    / _` | / __|  / _ \  
+#    \  /\  /    |  __/ | | | (__  | (_) | | | | | | | |  __/   | |_  | (_) |      \  /\  /    | (_| |  \ V /  | |____  | (_| | \__ \ |  __/  
+#     \/  \/      \___| |_|  \___|  \___/  |_| |_| |_|  \___|    \__|  \___/        \/  \/      \__,_|   \_/   |______|  \__,_| |___/  \___|""", background='#c3c3c3')
+label = tk.Label(root, text= r""" ༄ Welcome to WavEase ༄ """, background='#87CEEB')
+label.configure(font = ("Comic Sans MS", 28, "bold"))
 label.grid(row=1, column=1, sticky="nsew", padx=8, pady=8, columnspan=2)
+
+#tree graphic
+
 
 # Add Button
 start_button = tk.Button(root, text="Start Recognition", command=start_gesture_recognition)
