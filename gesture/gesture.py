@@ -40,7 +40,7 @@ def start_recognition():
     App_pause = True
     # Receive hand detection methods
     detector = HandDetector(mode=False,
-                            maxHands=1,
+                            maxHands=2,
                             detectionCon=0.8,
                             minTrackCon=0.5)
 
@@ -118,7 +118,7 @@ def start_recognition():
                 # With only the index and middle fingers up, it is considered to be moving the mouse
             if fingers[0] == 1 and fingers[1] == 1 and fingers[2] == 1 and sum(fingers) == 3 and frame >= 1:
                 # move mouse
-                autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
+                autopy.mouse.move(cLocx,cLocy)  # Give the coordinates of the mouse movement position
 
                 print("Move mouse")
 
@@ -127,22 +127,30 @@ def start_recognition():
 
                 # If the index and middle fingers are up and the distance between the fingertips is less than a certain
                 # value, it is considered to be a mouse click. A mouse click is considered a mouse click when the distance between the fingers is less than 43 (pixel distance)
-                if fingers[0] == 0 and frame >= 1:
-                    # Draw a green circle on the tip of your index finger to indicate that you are clicking the mouse
-                    cv2.circle(img, (x1, y1), 15, (0, 255, 0), cv2.FILLED)
-
-                    # left click on the mouse
-                    autopy.mouse.click(button=autopy.mouse.Button.LEFT, delay=0)
-                    cv2.putText(img, "left_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-                    print("Left Click")
-                else:
-                    cv2.putText(img, "move", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+                # if distance < 100 and frame > 2:
+                #     # Draw a green circle on the tip of your index finger to indicate that you are clicking the mouse
+                #     cv2.circle(img, (x1, y1), 15, (0, 255, 0), cv2.FILLED)
+                #
+                #     # left click on the mouse
+                #     pyautogui.click()
+                #     cv2.putText(img, "left_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+                #     print("Left Click")
+                # else:
+                #     cv2.putText(img, "move", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
             # Bend your middle finger and put your index finger on top. Right click on the mouse.
             elif fingers[1] == 1 and fingers[2] == 0 and sum(fingers) == 1 and frame >= 2:
-                autopy.mouse.click(button=autopy.mouse.Button.RIGHT, delay=0)
+                pyautogui.rightClick()
                 print("Right click")
                 cv2.putText(img, "rigth_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
                 cv2.circle(img, (x2, y2), 15, (0, 255, 0), cv2.FILLED)
+
+            elif fingers[1] == 0 and fingers[2] == 1 and sum(fingers) ==1 and frame >= 2:
+                pyautogui.leftClick()
+                print("Left click")
+                cv2.putText(img, "left_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+                cv2.circle(img, (x2, y2), 15, (0, 255, 0), cv2.FILLED)
+
+
 
 
 
@@ -197,27 +205,9 @@ def start_recognition():
                     time.sleep(0.3)
 
             # OK-like gestures for volume adjustment
-            elif fingers == [1, 0, 1, 1, 1] and frame >= 5:
-                autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
-                length = cLocx - pLocx
-                pLocx = cLocx
-                pLocy = cLocy
-                print("Move length:", length)
-                print("Move mouse to adjust the volume")
-                currentVolumeLv = volume.GetMasterVolumeLevelScalar()
-                print("currentVolume:", currentVolumeLv)
-                currentVolumeLv += length / 50.0
-                if currentVolumeLv > 1.0:
-                    currentVolumeLv = 1.0
-                elif currentVolumeLv < 0.0:
-                    currentVolumeLv = 0.0
-                volume.SetMasterVolumeLevelScalar(currentVolumeLv, None)
-                setVolume = volume.GetMasterVolumeLevelScalar()
-                volPer = setVolume
-                volBar = 350 - int((volPer) * 200)
-                cv2.rectangle(img, (20, 150), (50, 350), (255, 0, 255), 2)
-                cv2.rectangle(img, (20, int(volBar)), (50, 350), (255, 0, 255), cv2.FILLED)
-                cv2.putText(img, f'{int(volPer * 100)}%', (10, 380), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
+            elif fingers == [1, 1, 0, 0, 0] and frame >= 5:
+                pyautogui.press('volumeup')
+
 
         # Display image
         # FPS Show
