@@ -1,6 +1,7 @@
 import platform
 import subprocess
 import tkinter as tk
+import configparser
 import cv2 as cv
 from setuptools import launch
 import utile as utile
@@ -74,21 +75,41 @@ settings = {
     "hotkey": ""
 }
 
+hotkey_entry = tk.Entry
 
 def start_gesture_recognition():
     camera.start_capture()
     messagebox.showinfo("message", "recognition closed!")
 
+config = configparser.ConfigParser()
+
+def load_settings():
+    try:
+        config.read('config.ini')
+        value = config.get('hotkey', 'value')
+        #hotkey_entry.delete(0, tk.END)
+        hotkey_entry.insert(hotkey_entry, 0, value)
+    except Exception as e:
+        messagebox.showerror('Error', f'fail {str(e)}')
 
 def save_settings(selected_camera, selected_music_app, hotkey):
     # Update the global setting
     settings["selected_camera"] = selected_camera.get()
     settings["selected_music_app"] = selected_music_app.get()
     settings["hotkey"] = hotkey.get()
+
+    config['hotkey'] = {'value': hotkey.get()}
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
+    messagebox.showinfo('Saved', 'Saved to file')
+
     messagebox.showinfo("Save Setting", "Configuration saved！")
 
 
 def open_settings():
+
+    load_settings()
+    
     # here to open the setting page
     settings_window = tk.Toplevel(root)
     settings_window.title("Setting")
@@ -171,13 +192,13 @@ root.attributes('-alpha', 1.0)
 
 
 # Add a label
-label = tk.Label(root, text=""" __          __         _                                       _              __          __                  ______                        
+label = tk.Label(root, text=r"""\
+ __          __         _                                       _              __          __                  ______                        
  \ \        / /        | |                                     | |             \ \        / /                 |  ____|                       
   \ \  /\  / /    ___  | |   ___    ___    _ __ ___     ___    | |_    ___      \ \  /\  / /    __ _  __   __ | |__      __ _   ___    ___   
    \ \/  \/ /    / _ \ | |  / __|  / _ \  | '_ ` _ \   / _ \   | __|  / _ \      \ \/  \/ /    / _` | \ \ / / |  __|    / _` | / __|  / _ \  
     \  /\  /    |  __/ | | | (__  | (_) | | | | | | | |  __/   | |_  | (_) |      \  /\  /    | (_| |  \ V /  | |____  | (_| | \__ \ |  __/  
-     \/  \/      \___| |_|  \___|  \___/  |_| |_| |_|  \___|    \__|  \___/        \/  \/      \__,_|   \_/   |______|  \__,_| |___/  \___|
-                 """, background='#c3c3c3')
+     \/  \/      \___| |_|  \___|  \___/  |_| |_| |_|  \___|    \__|  \___/        \/  \/      \__,_|   \_/   |______|  \__,_| |___/  \___|""", background='#c3c3c3')
 label.grid(row=1, column=1, sticky="nsew", padx=8, pady=8, columnspan=2)
 
 # Add Button
