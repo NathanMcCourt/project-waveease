@@ -19,7 +19,7 @@ def print_result(result: GestureRecognizerResult, output_image: mp.Image, timest
     print('gesture recognition result: {}' + format(result))
 
 
-model_path = 'officialVersion/gesture_recognizer.task'
+model_path = 'officialVersion/own_trained_02.task'
 base_options = BaseOptions(model_asset_path=model_path)
 options = GestureRecognizerOptions(
     base_options=BaseOptions(model_asset_path=model_path),
@@ -65,7 +65,6 @@ def start():
                 pyautogui.press('volumeup')
             elif gesture_recognition_result.gestures[0][0].category_name == 'Open_Palm':
                 pyautogui.press('volumedown')
-
 
         cv2.imshow('Camera Feed', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
