@@ -61,9 +61,9 @@ def start():
                               gesture_recognition_result.gestures[0][0].category_name, (50, 50, 200, 20))
             frame = draw_landmarks_on_image(frame, gesture_recognition_result)
             print('gesture recognition result: {}' + format(gesture_recognition_result))
-            if gesture_recognition_result.gestures[0][0].category_name == 'Closed_Fist':
+            if gesture_recognition_result.gestures[0][0].category_name == 'Pointing_up':
                 pyautogui.press('volumeup')
-            elif gesture_recognition_result.gestures[0][0].category_name == 'Open_Palm':
+            elif gesture_recognition_result.gestures[0][0].category_name == 'pointing_down':
                 pyautogui.press('volumedown')
 
         cv2.imshow('Camera Feed', frame)
