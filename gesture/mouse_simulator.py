@@ -77,8 +77,9 @@ def start_recognition():
             hand_center = hands[0]['center']
             drag_flag = 0
             # Get the coordinates of the tip of the index finger and the tip of the middle finger.
-            x1, y1, z1 = lmList[8]  # The index number of the key point at the tip of the index finger is 8
+            x1, y1, z1 = lmList[4]  # The index number of the key point at the tip of the index finger is 8
             x2, y2, z2 = lmList[12]  # Middle Finger Index 12
+            x5, y5, z5 = lmList[8]
 
             # Calculate the coordinates of the midpoint
             # between the index and middle fingers.
@@ -117,7 +118,7 @@ def start_recognition():
                 # With only the index and middle fingers up, it is considered to be moving the mouse
             if fingers[0] == 1 and fingers[1] == 1 and fingers[2] == 1 and sum(fingers) == 3 and frame >= 1:
                 # move mouse
-                autopy.mouse.move(cLocx,cLocy)  # Give the coordinates of the mouse movement position
+                autopy.mouse.move(cLocx, cLocy)  # Give the coordinates of the mouse movement position
 
                 print("Move mouse")
 
@@ -143,63 +144,6 @@ def start_recognition():
                 print("Right click")
                 cv2.putText(img, "rigth_click", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
                 cv2.circle(img, (x2, y2), 15, (0, 255, 0), cv2.FILLED)
-
-
-
-
-            # # Thumbs open, others bent, press up button once
-            # elif fingers == [1, 0, 0, 0, 0] and frame >= 2:
-            #     cv2.putText(img, "UP", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-            #     if (active_window_process_name == "Spotify.exe"):
-            #         print("#############################################")
-            #         autopy.key.toggle(autopy.key.Code.LEFT_ARROW, True, [autopy.key.Modifier.CONTROL])
-            #         autopy.key.toggle(autopy.key.Code.LEFT_ARROW, False, [autopy.key.Modifier.CONTROL])
-            #         print("Last play")
-            #         time.sleep(0.3)
-            #     else:
-            #         autopy.key.toggle(autopy.key.Code.UP_ARROW, True, [])
-            #         autopy.key.toggle(autopy.key.Code.UP_ARROW, False, [])
-            #         print("Up and down")
-            #
-            #         time.sleep(1)
-            #
-            # # Thumb bent, others vertical, press down key once
-            # elif fingers == [0, 1, 1, 1, 1] and frame >= 2:
-            #     cv2.putText(img, "Down", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-            #     if (active_window_process_name == "Spotify.exe"):
-            #         print("#############################################")
-            #         autopy.key.toggle(autopy.key.Code.RIGHT_ARROW, True, [autopy.key.Modifier.CONTROL])
-            #         autopy.key.toggle(autopy.key.Code.RIGHT_ARROW, False, [autopy.key.Modifier.CONTROL])
-            #         print("Next play")
-            #         time.sleep(0.3)
-            #     else:
-            #         autopy.key.toggle(autopy.key.Code.DOWN_ARROW, True, [])
-            #         autopy.key.toggle(autopy.key.Code.DOWN_ARROW, False, [])
-            #
-            #         print("Press down")
-            #         time.sleep(1)
-            # elif fingers == [1, 1, 1, 1, 1] and frame >= 10:
-            #     cv2.putText(img, "Pause", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-            #     if (active_window_process_name == "Spotify.exe" and App_pause == False):
-            #         print("#############################################")
-            #         pyautogui.hotkey('space')
-            #         print("Pause")
-            #         App_pause = True
-            #         time.sleep(0.3)
-            #         # Five-finger grip, press left button firmly to drag and drop
-            # elif fingers == [0, 0, 0, 0, 0] and frame >= 10:
-            #     cv2.putText(img, "Play", (150, 50), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
-            #     if (active_window_process_name == "Spotify.exe" and App_pause == True):
-            #         print("#############################################")
-            #         pyautogui.hotkey('space')
-            #         print("Play")
-            #         App_pause = False
-            #         time.sleep(0.3)
-
-            # OK-like gestures for volume adjustment
-            elif fingers == [1, 1, 0, 0, 0] and frame >= 5:
-                pyautogui.press('volumeup')
-
 
         # Display image
         # FPS Show
