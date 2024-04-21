@@ -88,10 +88,12 @@ config = configparser.ConfigParser()
 
 def load_settings():
     try:
-        config.read('config.ini')
-        value = config.get('hotkey', 'value')
-        #hotkey_entry.delete(0, tk.END)
-        hotkey_entry.insert(hotkey_entry, 0, value)
+        config.read('officialVersion/config.ini')
+        settings["hotkey"] = config.get('hotkey', 'value')
+        settings["hotkey2"] = config.get('hotkey2', 'value')
+        settings["hotkey3"] = config.get('hotkey3', 'value')
+        settings["hotkey4"] = config.get('hotkey4', 'value')
+        settings["hotkey5"] = config.get('hotkey5', 'value')
     except Exception as e:
         messagebox.showerror('Error', f'fail {str(e)}')
 
@@ -101,8 +103,12 @@ def save_settings(selected_camera, selected_music_app, hotkey):
     settings["selected_music_app"] = selected_music_app.get()
     settings["hotkey"] = hotkey.get()
 
-    config['hotkey'] = {'value': hotkey.get()}
-    with open('config.ini', 'w') as configfile:
+    config['hotkey'] = {'value': hotkey[0].get()}
+    config['hotkey2'] = {'value': hotkey[1].get()}
+    config['hotkey3'] = {'value': hotkey[2].get()}
+    config['hotkey4'] = {'value': hotkey[3].get()}
+    config['hotkey5'] = {'value': hotkey[4].get()}
+    with open('officialVersion/config.ini', 'w') as configfile:
         config.write(configfile)
     messagebox.showinfo('Saved', 'Saved to file')
 
