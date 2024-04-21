@@ -8,6 +8,7 @@ from oldversion import camera as ca
 from oldversion.cleanup import cleanup
 from tkinter import messagebox, ttk
 import configparser
+#from playsound import playsound
 
 import time
 import os
@@ -218,5 +219,6 @@ exit_button = tk.Button(root, text="Exit",
                          background='#87CEEB', fg="white")
 exit_button.grid(row=3, column=2, padx=8, pady=8, ipadx=30, ipady=5, sticky='ew')
 
+#playsound('.assets/bird_audio.wav')
 # start the evert loop
 root.mainloop()
