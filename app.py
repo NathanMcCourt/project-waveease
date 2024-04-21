@@ -7,6 +7,7 @@ import officialVersion.gesture_recognition as gs
 from oldversion import camera as ca
 from oldversion.cleanup import cleanup
 from tkinter import messagebox, ttk
+import configparser
 
 import time
 import os
