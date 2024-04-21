@@ -198,16 +198,24 @@ tree.grid(row=1, column=1, sticky="nsew", columnspan=2)
 root.after(0, update, 0)
 
 # Add Button
-start_button = tk.Button(root, text="Start Recognition", command=start_gesture_recognition)
+start_button = tk.Button(root, text="Start Recognition", 
+                         command=start_gesture_recognition,
+                         background='#87CEEB', fg="white")
 start_button.grid(row=2, column=1, padx=8, pady=8, ipadx=30, ipady=5, sticky='ew')
 
-mouse_button = tk.Button(root, text="Start Mouse Simulation", command=start_mouse_simulation)
+mouse_button = tk.Button(root, text="Start Mouse Simulation", 
+                         command=start_mouse_simulation,
+                         background='#87CEEB', fg="white")
 mouse_button.grid(row=2, column=2, padx=8, pady=8, ipadx=30, ipady=5, sticky='ew')
 
-settings_button = tk.Button(root, text="Settings", command=open_settings)
+settings_button = tk.Button(root, text="Settings",
+                             command=open_settings,
+                             background='#87CEEB', fg="white")
 settings_button.grid(row=3, column=1, padx=8, pady=8, ipadx=30, ipady=5, sticky='ew')
 
-exit_button = tk.Button(root, text="Exit", command=exit_app)
+exit_button = tk.Button(root, text="Exit", 
+                         command=exit_app,
+                         background='#87CEEB', fg="white")
 exit_button.grid(row=3, column=2, padx=8, pady=8, ipadx=30, ipady=5, sticky='ew')
 
 # start the evert loop
