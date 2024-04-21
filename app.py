@@ -7,72 +7,20 @@ import officialVersion.gesture_recognition as gs
 from oldversion import camera as ca
 from oldversion.cleanup import cleanup
 from tkinter import messagebox, ttk
+import configparser
+#from playsound import playsound
 
 import time
 import os
 
-# window = tk.Tk()
-# window.title("WAVEASE")
-# window.minsize(500, 300)
-#
-# greeting = tk.Label(text="WELCOME TO WAVEASE")
-# greeting.pack()
-#
-# cam = cv.VideoCapture(0)
-# #cam.set(cv.CAP_PROP_FRAME_WIDTH, 200)
-# #cam.set(cv.CAP_PROP_FRAME_HEIGHT, 200)
-#
-# label_camera = tk.Label(window)
-# label_camera.pack()
-# _, frame = cam.read()
-#
-#
-# def capture():
-#     # Capture the video frame by frame
-#
-#
-#
-#     window = tk.Tk()
-#     window.title("WAVEASE")
-#     window.minsize(500, 300)
-#
-#     greeting = tk.Label(text="WELCOME TO WAVEASE")
-#     greeting.pack()
-#
-#     cam = cv.VideoCapture(0)
-#     # cam.set(cv.CAP_PROP_FRAME_WIDTH, 200)
-#     # cam.set(cv.CAP_PROP_FRAME_HEIGHT, 200)
-#
-#     label_camera = tk.Label(window)
-#     label_camera.pack()
-#         # Convert image from one color space to other
-#     opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGBA)
-#
-#         # Capture the latest frame and transform to image
-#     captured_image = Image.fromarray(opencv_image)
-#
-#         # Convert captured image to photoimage
-#     photo_image = ImageTk.PhotoImage(image=captured_image)
-#
-#         # Displaying photoimage in the label
-#     label_camera.photo_image = photo_image
-#
-#         # Configure image in the label
-#     label_camera.configure(image=photo_image)
-#
-#         # Repeat the same process after every 10 seconds
-#     label_camera.after(10, capture)
-
-# capture()
-#
-# window.mainloop() #listen for events
-#
-# capture()
-
 settings = {
     "selected_camera": "",
     "selected_music_app": "",
-    "hotkey": ""
+    "hotkey": "",
+    "hotkey2": "",
+    "hotkey3": "",
+    "hotkey4": "",
+    "hotkey5": "",
 }
 
 hotkey_entry = tk.Entry
@@ -88,22 +36,34 @@ def start_gesture_recognition():
 
 config = configparser.ConfigParser()
 
-def load_settings():
+def load_settings(): #load from config file
     try:
         config.read('config.ini')
-        value = config.get('hotkey', 'value')
-        #hotkey_entry.delete(0, tk.END)
-        hotkey_entry.insert(hotkey_entry, 0, value)
+        settings["hotkey"] = config.get('hotkey', 'value')
+        settings["hotkey2"] = config.get('hotkey2', 'value')
+        settings["hotkey3"] = config.get('hotkey3', 'value')
+        settings["hotkey4"] = config.get('hotkey4', 'value')
+        settings["hotkey5"] = config.get('hotkey5', 'value')
     except Exception as e:
-        messagebox.showerror('Error', f'fail {str(e)}')
+        messagebox.showerror('Error loading config, try saving settings first', f'fail {str(e)}')
+
+load_settings()
 
 def save_settings(selected_camera, selected_music_app, hotkey):
     # Update the global setting
     settings["selected_camera"] = selected_camera.get()
     settings["selected_music_app"] = selected_music_app.get()
-    settings["hotkey"] = hotkey.get()
+    settings["hotkey"] = hotkey[0].get()
+    settings["hotkey2"] = hotkey[1].get()
+    settings["hotkey3"] = hotkey[2].get()
+    settings["hotkey4"] = hotkey[3].get()
+    settings["hotkey5"] = hotkey[4].get()
 
-    config['hotkey'] = {'value': hotkey.get()}
+    config['hotkey'] = {'value': hotkey[0].get()}
+    config['hotkey2'] = {'value': hotkey[1].get()}
+    config['hotkey3'] = {'value': hotkey[2].get()}
+    config['hotkey4'] = {'value': hotkey[3].get()}
+    config['hotkey5'] = {'value': hotkey[4].get()}
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
     messagebox.showinfo('Saved', 'Saved to file')
@@ -112,13 +72,12 @@ def save_settings(selected_camera, selected_music_app, hotkey):
 
 
 def open_settings():
-
-    load_settings()
     
     # here to open the setting page
     settings_window = tk.Toplevel(root)
     settings_window.title("Setting")
-    settings_window.geometry("300x250")
+    #settings_window.geometry("300x250")
+
 
     # Camera and music app
     avaible_camera = ca.find_available_cameras()
@@ -127,12 +86,16 @@ def open_settings():
 
     selected_camera = tk.StringVar()
     selected_music_app = tk.StringVar()
-    hotkey_entry_var = tk.StringVar()
+    hotkey_entry_var = [tk.StringVar(), tk.StringVar(), tk.StringVar(), tk.StringVar(), tk.StringVar()]
 
     # Rollback to previous saved setting
     selected_camera.set(camera_options[0] if camera_options else "No available Camera ")
     selected_music_app.set(settings["selected_music_app"] if settings["selected_music_app"] else music_app_options[0])
-    hotkey_entry_var.set(settings["hotkey"])
+    hotkey_entry_var[0].set(settings["hotkey"])
+    hotkey_entry_var[1].set(settings["hotkey2"])
+    hotkey_entry_var[2].set(settings["hotkey3"])
+    hotkey_entry_var[3].set(settings["hotkey4"])
+    hotkey_entry_var[4].set(settings["hotkey5"])
 
     # Create UI
     tk.Label(settings_window, text="Select Camera:").grid(row=0, column=0, pady=10, padx=10, sticky="w")
@@ -143,17 +106,31 @@ def open_settings():
     music_app_menu = ttk.Combobox(settings_window, textvariable=selected_music_app, values=music_app_options)
     music_app_menu.grid(row=1, column=1, padx=10, sticky="ew")
 
-    tk.Label(settings_window, text="Set hotkey:").grid(row=2, column=0, pady=10, padx=10, sticky="w")
-    hotkey_entry = tk.Entry(settings_window, textvariable=hotkey_entry_var)
-    hotkey_entry.grid(row=2, column=1, padx=10, sticky="ew")
+    tk.Button(settings_window, text="Open App", command=launch_app ).grid(row=2, column=0, pady=10, padx=10, sticky="ew", columnspan=2)
+
+    tk.Label(settings_window, text="Set hotkey 1:").grid(row=3, column=0, pady=10, padx=10, sticky="w")
+    hotkey_entry = tk.Entry(settings_window, textvariable=hotkey_entry_var[0])
+    hotkey_entry.grid(row=3, column=1, padx=10, sticky="ew")
+
+    tk.Label(settings_window, text="Set hotkey 2:").grid(row=4, column=0, pady=10, padx=10, sticky="w")
+    tk.Entry(settings_window, textvariable=hotkey_entry_var[1]).grid(row=4, column=1, padx=10, sticky="ew")
+
+    tk.Label(settings_window, text="Set hotkey 3:").grid(row=5, column=0, pady=10, padx=10, sticky="w")
+    tk.Entry(settings_window, textvariable=hotkey_entry_var[2]).grid(row=5, column=1, padx=10, sticky="ew")
+
+    tk.Label(settings_window, text="Set hotkey 4:").grid(row=6, column=0, pady=10, padx=10, sticky="w")
+    tk.Entry(settings_window, textvariable=hotkey_entry_var[3]).grid(row=6, column=1, padx=10, sticky="ew")
+
+    tk.Label(settings_window, text="Set hotkey 5:").grid(row=7, column=0, pady=10, padx=10, sticky="w")
+    tk.Entry(settings_window, textvariable=hotkey_entry_var[4]).grid(row=7, column=1, padx=10, sticky="ew")
 
     # Create save and back button
     save_button = tk.Button(settings_window, text="Save",
                             command=lambda: save_settings(selected_camera, selected_music_app, hotkey_entry_var))
-    save_button.grid(row=3, column=0, pady=10, padx=10, sticky="ew")
+    save_button.grid(row=8, column=0, pady=10, padx=10, sticky="ew")
 
     back_button = tk.Button(settings_window, text="Back", command=settings_window.destroy)
-    back_button.grid(row=3, column=1, pady=10, padx=10, sticky="ew")
+    back_button.grid(row=8, column=1, pady=10, padx=10, sticky="ew")
 
     settings_window.grid_columnconfigure(1, weight=1)
 
@@ -179,16 +156,17 @@ def launch_app():
 # Create the main windows
 root = tk.Tk()
 root.title("WavEase!")
-root.geometry("500x400")  # initial size
-root.minsize(500, 300)
+#root.geometry("500x500")  # initial size
+root.resizable(False, False)
+#root.minsize(500, 300)
 root.configure(background="#87CEEB")
 
 # layout
-root.grid_columnconfigure([1, 2], weight=1, minsize=70)
+#root.grid_columnconfigure([1, 2], weight=1, minsize=70)
 # root.grid_columnconfigure(1, weight=1, minsize=70)
 
-root.grid_rowconfigure(0, weight=1, minsize=50)
-root.grid_rowconfigure(1, weight=1, minsize=10)
+#root.grid_rowconfigure(0, weight=1, minsize=50)
+#root.grid_rowconfigure(1, weight=1, minsize=10)
 #root.grid_rowconfigure([2,3], weight=1, minsize=10) ## does not work for Mac
 root.attributes('-alpha', 1.0) 
 
@@ -221,20 +199,26 @@ tree.grid(row=1, column=1, sticky="nsew", columnspan=2)
 root.after(0, update, 0)
 
 # Add Button
-start_button = tk.Button(root, text="Start Recognition", command=start_gesture_recognition)
-start_button.grid(row=2, column=1, padx=8, pady=8, ipadx=30, ipady=5)
+start_button = tk.Button(root, text="Start Recognition", 
+                         command=start_gesture_recognition,
+                         background='#87CEEB', fg="white")
+start_button.grid(row=2, column=1, padx=8, pady=8, ipadx=30, ipady=5, sticky='ew')
 
-start_button = tk.Button(root, text="Start Mouse Simulation", command=start_mouse_simulation)
-start_button.grid(row=2, column=2, padx=8, pady=8, ipadx=30, ipady=5)
+mouse_button = tk.Button(root, text="Start Mouse Simulation", 
+                         command=start_mouse_simulation,
+                         background='#87CEEB', fg="white")
+mouse_button.grid(row=2, column=2, padx=8, pady=8, ipadx=30, ipady=5, sticky='ew')
 
-launch_button = tk.Button(root, text="Launch app", command=launch_app)
-launch_button.grid(row=2, column=3, padx=8, pady=8, ipadx=30, ipady=5)
+settings_button = tk.Button(root, text="Settings",
+                             command=open_settings,
+                             background='#87CEEB', fg="white")
+settings_button.grid(row=3, column=1, padx=8, pady=8, ipadx=30, ipady=5, sticky='ew')
 
-settings_button = tk.Button(root, text="Settings", command=open_settings)
-settings_button.grid(row=3, column=1, padx=8, pady=8, ipadx=30, ipady=5)
+exit_button = tk.Button(root, text="Exit", 
+                         command=exit_app,
+                         background='#87CEEB', fg="white")
+exit_button.grid(row=3, column=2, padx=8, pady=8, ipadx=30, ipady=5, sticky='ew')
 
-exit_button = tk.Button(root, text="Exit", command=exit_app)
-exit_button.grid(row=3, column=2, padx=8, pady=8, ipadx=30, ipady=5)
-
+#playsound('.assets/bird_audio.wav')
 # start the evert loop
 root.mainloop()

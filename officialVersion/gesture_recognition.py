@@ -63,6 +63,7 @@ def start():
             print('gesture recognition result: {}' + format(gesture_recognition_result))
             if gesture_recognition_result.gestures[0][0].category_name == 'Pointing_up':
                 pyautogui.press('volumeup')
+                #here data from config.ini should be accessed that will change button pressed based on saved hotkey
             elif gesture_recognition_result.gestures[0][0].category_name == 'pointing_down':
                 pyautogui.press('volumedown')
 
