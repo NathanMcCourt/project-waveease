@@ -8,7 +8,7 @@ from oldversion import camera as ca
 from oldversion.cleanup import cleanup
 from tkinter import messagebox, ttk
 import configparser
-#from playsound import playsound
+from playsound import playsound
 
 import time
 import os
@@ -152,9 +152,10 @@ def open_settings():
     tk.Button(settings_window, text="Default", command=lambda: load_preset('default', hotkey_entry_var)).grid(row=10, column=0, pady=10, padx=10, sticky="ew")
     tk.Button(settings_window, text="PowerPoint", command=lambda: load_preset('powerpoint', hotkey_entry_var)).grid(row=10, column=1, pady=10, padx=10, sticky="ew")
     tk.Entry(settings_window, textvariable=preset).grid(row=11, column=0, padx=10, sticky="ew", columnspan=2)
-    tk.Button(settings_window, text="Load", command=lambda: load_preset(preset.get(), hotkey_entry_var)).grid(row=12, column=0, pady=10, padx=10, sticky="ew", rowspan=2)
-    tk.Button(settings_window, text="Save New", command=lambda: save_preset(preset, hotkey_entry_var)).grid(row=12, column=1, pady=10, padx=10, sticky="ew", rowspan=2)
+    tk.Button(settings_window, text="Load", command=lambda: load_preset(preset.get(), hotkey_entry_var)).grid(row=12, column=0, pady=10, padx=10, sticky="ew")
+    tk.Button(settings_window, text="Save New", command=lambda: save_preset(preset, hotkey_entry_var)).grid(row=12, column=1, pady=10, padx=10, sticky="ew")
 
+    tk.Label(settings_window, text="‧₊˚ ☁️⋅♡𓂃 ࣪ ִֶָ☾. ⋆｡°•☁️.").grid(row=13, column=0, pady=10, padx=10, sticky="ew", columnspan=2)
 
     # Create save and back button
     save_button = tk.Button(settings_window, text="Save",
@@ -251,6 +252,6 @@ exit_button = tk.Button(root, text="Exit",
                          background='#87CEEB', fg="white")
 exit_button.grid(row=3, column=2, padx=8, pady=8, ipadx=30, ipady=5, sticky='ew')
 
-#playsound('.assets/bird_audio.wav')
+playsound('.assets/bird_audio.wav')
 # start the evert loop
 root.mainloop()
